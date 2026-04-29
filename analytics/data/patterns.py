@@ -24,7 +24,7 @@ EDUCATION_PATTERNS = {
     "Técnico": re.compile(r'\b(t[eé]cnico|auxiliar)\b', re.IGNORECASE),
 }
 
-COMPANY_SUFFIXES_PATTERN = re.compile(r'\b(S\.?A\.?S\.?|L\.?T\.?D\.?A\.?|S\.?A\.?|I\.?N\.?C\.?|B\.?I\.?C\.?)\b', re.IGNORECASE)
+COMPANY_SUFFIXES_PATTERN = re.compile(r'\b(S\.?\s*A\.?\s*S\.?|L\.?\s*T\.?\s*D\.?\s*A\.?|S\.?\s*A\.?|I\.?\s*N\.?\s*C\.?|B\.?\s*I\.?\s*C\.?)\b', re.IGNORECASE)
 
 CLEAN_SPACES_PATTERN = re.compile(r'\s+', re.IGNORECASE)
 
