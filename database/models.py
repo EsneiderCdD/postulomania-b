@@ -18,7 +18,7 @@ class Oferta(Base):
     experiencia_anios = Column(Float)
     requiere_ingles = Column(Boolean)
     keyword = Column(String(100))
-    origen_proceso = Column(String(100))
+    origen_proceso = Column(String(100), nullable=False, index=True)
     empresa_id = Column(Integer, ForeignKey('empresas.id'))
 
     empresa = relationship('Empresa', backref='ofertas')

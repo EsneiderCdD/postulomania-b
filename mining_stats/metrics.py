@@ -13,7 +13,8 @@ def calculate_distribution(df, column):
 
 def calculate_mode(df, column):
     """Retorna la categoría con mayor cantidad de registros."""
-    return df[column].mode()[0]
+    modes = df[column].mode()
+    return modes.iloc[0] if not modes.empty else None
 
 def calculate_null_ratio(df, column):
     """Calcula la proporción de valores nulos en una columna específica."""

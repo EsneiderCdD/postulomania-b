@@ -157,13 +157,13 @@ def get_experience_stats():
         max_exp, techs_max = get_experience_extremes(df, df_techs)
         entry_rate = calculate_entry_level_rate(df, 'experiencia_anios')
         std_v = calculate_std_dev(df, 'experiencia_anios')
-        mode_v = df['experiencia_anios'].mode()[0]
+        mode_v = calculate_mode(df, 'experiencia_anios')
         
         return {
             "metrica": "Experiencia en Años",
             "promedio": round(float(mean_v), 2),
             "mediana": float(median_v),
-            "moda": float(mode_v),
+            "moda": float(mode_v) if mode_v is not None else None,
             "volatilidad_std": round(float(std_v), 2),
             "tasa_entry_level": f"{entry_rate:.2f}%",
             "distribucion_niveles": levels,
@@ -172,6 +172,40 @@ def get_experience_stats():
                 "max_anios": max_exp,
                 "techs_asociadas": techs_max
             }
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/origen-experience")
+def get_origen_experience_stats():
+    try:
+        df = pd.read_sql("SELECT id, experiencia_anios, origen_proceso FROM ofertas", engine)
+
+        avg_by_origin = df.groupby("origen_proceso")["experiencia_anios"].mean().round(2).to_dict()
+        median_by_origin = df.groupby("origen_proceso")["experiencia_anios"].median().to_dict()
+        mode_by_origin = df.groupby("origen_proceso")["experiencia_anios"].apply(lambda x: x.mode()[0] if not x.mode().empty else None).to_dict()
+
+        bins = [0, 1.9, 4.9, 100]
+        labels = ["Junior (0-2)", "Middle (2-5)", "Senior (5+)"]
+        df["nivel"] = pd.cut(df["experiencia_anios"], bins=bins, labels=labels)
+
+        levels_by_origin = {}
+        for origen in df["origen_proceso"].unique():
+            subset = df[df["origen_proceso"] == origen]
+            levels_by_origin[origen] = subset["nivel"].value_counts().to_dict()
+
+        entry_by_origin = {}
+        for origen in df["origen_proceso"].unique():
+            subset = df[df["origen_proceso"] == origen]
+            entry_by_origin[origen] = f"{(subset['experiencia_anios'] == 0).mean() * 100:.2f}%"
+
+        return {
+            "metrica": "Experiencia por Origen del Proceso",
+            "promedio_por_origen": avg_by_origin,
+            "mediana_por_origen": median_by_origin,
+            "moda_por_origen": mode_by_origin,
+            "distribucion_niveles_por_origen": levels_by_origin,
+            "tasa_entry_level_por_origen": entry_by_origin,
         }
     except Exception as e:
         return {"error": str(e)}
@@ -339,3 +373,216 @@ def get_id_stats():
         }
     except Exception as e:
         return {"error": str(e)}
+
+# ── Capítulo III: endpoints de cruce entre dimensiones ──
+
+@router.get("/origen-timing")
+def get_origen_timing_stats():
+    try:
+        df = pd.read_sql("SELECT origen_proceso, fecha_publicacion_estimada FROM ofertas", engine)
+        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
+
+        vol_por_dia = {}
+        dia_pico = {}
+        fuga = {}
+        for origen in df["origen_proceso"].unique():
+            sub = df[df["origen_proceso"] == origen]
+            dias = sub["fecha_publicacion_estimada"].dt.day_name().value_counts().to_dict()
+            vol_por_dia[origen] = dias
+            dia_modes = sub["fecha_publicacion_estimada"].dt.day_name().mode()
+            dia_pico[origen] = dia_modes.iloc[0] if not dia_modes.empty else None
+            weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
+            total = len(sub)
+            fuga[origen] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
+
+        return {
+            "metrica": "Timing por Origen del Proceso",
+            "volumen_por_dia_por_origen": vol_por_dia,
+            "dia_pico_por_origen": dia_pico,
+            "fuga_finde_por_origen": fuga,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/origen-empresa")
+def get_origen_empresa_stats():
+    try:
+        query = """
+        SELECT o.origen_proceso, e.nombre as empresa
+        FROM ofertas o
+        LEFT JOIN empresas e ON o.empresa_id = e.id
+        """
+        df = pd.read_sql(query, engine)
+
+        unicas = {}
+        top_3 = {}
+        larga_cola = {}
+        for origen in df["origen_proceso"].unique():
+            sub = df[df["origen_proceso"] == origen]
+            unicas[origen] = int(sub["empresa"].nunique())
+            top_3[origen] = sub["empresa"].value_counts().head(3).to_dict()
+            counts = sub["empresa"].value_counts()
+            single = int((counts == 1).sum())
+            total_emp = len(counts)
+            larga_cola[origen] = f"{(single / total_emp * 100):.2f}%" if total_emp else "0.00%"
+
+        return {
+            "metrica": "Empresa por Origen del Proceso",
+            "empresas_unicas_por_origen": unicas,
+            "top_3_por_origen": top_3,
+            "larga_cola_por_origen": larga_cola,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/english-timing")
+def get_english_timing_stats():
+    try:
+        df = pd.read_sql("SELECT requiere_ingles, fecha_publicacion_estimada FROM ofertas", engine)
+        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
+
+        vol_por_dia = {}
+        dia_pico = {}
+        fuga = {}
+        for val in [True, False]:
+            sub = df[df["requiere_ingles"] == val]
+            key = "Con Ingles" if val else "Sin Ingles"
+            dias = sub["fecha_publicacion_estimada"].dt.day_name().value_counts().to_dict()
+            vol_por_dia[key] = dias
+            dia_modes = sub["fecha_publicacion_estimada"].dt.day_name().mode()
+            dia_pico[key] = dia_modes.iloc[0] if not dia_modes.empty else None
+            weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
+            total = len(sub)
+            fuga[key] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
+
+        return {
+            "metrica": "Timing por Requerimiento de Ingles",
+            "volumen_por_dia_por_ingles": vol_por_dia,
+            "dia_pico_por_ingles": dia_pico,
+            "fuga_finde_por_ingles": fuga,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/experience-empresa")
+def get_experience_empresa_stats():
+    try:
+        query = """
+        SELECT e.nombre as empresa, o.experiencia_anios
+        FROM ofertas o
+        LEFT JOIN empresas e ON o.empresa_id = e.id
+        """
+        df = pd.read_sql(query, engine)
+        df = df.dropna(subset=["empresa"])
+
+        exp_by_emp = df.groupby("empresa")["experiencia_anios"].mean().round(2).sort_values(ascending=False)
+        top = exp_by_emp.head(10).to_dict()
+
+        bins = [0, 1.9, 4.9, 100]
+        labels = ["Junior (0-2)", "Middle (2-5)", "Senior (5+)"]
+        df["nivel"] = pd.cut(df["experiencia_anios"], bins=bins, labels=labels)
+
+        nivel_mas_demandado = df["nivel"].value_counts().to_dict()
+
+        return {
+            "metrica": "Experiencia por Empresa",
+            "top_experiencia_empresas": top,
+            "nivel_mas_demandado": nivel_mas_demandado,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/experience-compatibility")
+def get_experience_compatibility_stats():
+    try:
+        query = """
+        SELECT o.experiencia_anios, c.score
+        FROM ofertas o
+        JOIN compatibilidades c ON o.id = c.oferta_id
+        """
+        df = pd.read_sql(query, engine)
+
+        bins = [0, 1.9, 4.9, 100]
+        labels = ["Junior (0-2)", "Middle (2-5)", "Senior (5+)"]
+        df["nivel"] = pd.cut(df["experiencia_anios"], bins=bins, labels=labels)
+
+        score_por_nivel = df.groupby("nivel")["score"].mean().round(4).to_dict()
+        corr = float(df["experiencia_anios"].corr(df["score"]))
+        min_exp, max_exp = float(df["experiencia_anios"].min()), float(df["experiencia_anios"].max())
+
+        return {
+            "metrica": "Compatibilidad por Nivel de Experiencia",
+            "score_por_nivel": score_por_nivel,
+            "correlacion_exp_vs_score": round(corr, 4),
+            "rango_experiencia_analizado": {"min": min_exp, "max": max_exp},
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/experience-timing")
+def get_experience_timing_stats():
+    try:
+        df = pd.read_sql("SELECT experiencia_anios, fecha_publicacion_estimada FROM ofertas", engine)
+        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
+        df["dia"] = df["fecha_publicacion_estimada"].dt.day_name()
+
+        exp_por_dia = df.groupby("dia")["experiencia_anios"].mean().round(2).to_dict()
+        mediana_por_dia = df.groupby("dia")["experiencia_anios"].median().to_dict()
+        mejor_dia = max(exp_por_dia, key=exp_por_dia.get) if exp_por_dia else None
+
+        return {
+            "metrica": "Experiencia Promedio por Dia",
+            "promedio_exp_por_dia": exp_por_dia,
+            "mediana_exp_por_dia": mediana_por_dia,
+            "dia_con_mas_experiencia_promedio": mejor_dia,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/empresa-compatibility")
+def get_empresa_compatibility_stats():
+    try:
+        query = """
+        SELECT e.nombre as empresa, c.score
+        FROM ofertas o
+        JOIN empresas e ON o.empresa_id = e.id
+        JOIN compatibilidades c ON o.id = c.oferta_id
+        """
+        df = pd.read_sql(query, engine)
+
+        score_por_emp = df.groupby("empresa")["score"].mean().round(4).sort_values(ascending=False)
+        top = score_por_emp.head(10).to_dict()
+        empresas_sin_match = [e for e, s in score_por_emp.items() if s == 0.0]
+
+        return {
+            "metrica": "Compatibilidad por Empresa",
+            "top_score_empresas": top,
+            "empresas_con_match_cero": len(empresas_sin_match),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/tech-compatibility")
+def get_tech_compatibility_stats():
+    try:
+        query = """
+        SELECT t.nombre as tech, c.score
+        FROM ofertas_tecnologias ot
+        JOIN tecnologias t ON ot.tecnologia_id = t.id
+        JOIN compatibilidades c ON ot.oferta_id = c.oferta_id
+        """
+        df = pd.read_sql(query, engine)
+
+        score_por_tech = df.groupby("tech")["score"].mean().round(4).sort_values(ascending=False)
+        top = score_por_tech.head(15).to_dict()
+        bottom = score_por_tech.tail(5).to_dict()
+
+        return {
+            "metrica": "Compatibilidad por Tecnologia",
+            "top_score_tecnologias": top,
+            "bottom_score_tecnologias": bottom,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
