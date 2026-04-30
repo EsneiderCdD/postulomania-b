@@ -45,7 +45,9 @@ def parse_company_name(text):
     if pd.isna(text): 
         return text
     clean = COMPANY_SUFFIXES_PATTERN.sub('', str(text))
-    return clean.strip().rstrip('.')
+    clean = clean.strip().rstrip('.').title()
+    clean = unicodedata.normalize('NFKD', clean).encode('ascii', 'ignore').decode()
+    return clean
 
 def parse_job_title(text):
     """Categoriza el cargo basado en palabras clave."""
