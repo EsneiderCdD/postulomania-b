@@ -79,17 +79,23 @@ def get_empresa_stats():
         exclusive_english = get_exclusive_companies(df, 'requiere_ingles')
         unique_count = get_unique_companies_count(df)
         single_offer_count, long_tail_percent = get_long_tail_analysis(df)
+
+        total_ofertas = len(df)
+        ofertas_anonimas = int(df['empresa'].isna().sum())
+        ratio_anonimas = (ofertas_anonimas / total_ofertas * 100) if total_ofertas > 0 else 0
         
         return {
             "metrica": "Empresa",
-            "total_empresas_unicas": int(unique_count),
+            "total_empresas_identificadas": int(unique_count),
+            "total_ofertas_anonimas": ofertas_anonimas,
+            "ratio_ofertas_anonimas": f"{ratio_anonimas:.2f}%",
             "top_10_empresas": top_10,
             "ratio_nulos_empresa": f"{integrity:.2f}%",
             "total_empresas_solo_ingles": len(exclusive_english),
             "empresas_solo_ingles": exclusive_english,
             "analisis_larga_cola": {
-                "empresas_con_una_oferta": int(single_offer_count),
-                "porcentaje_larga_cola": f"{long_tail_percent:.2f}%"
+                "empresas_identificadas_con_una_oferta": int(single_offer_count),
+                "porcentaje_larga_cola_identificadas": f"{long_tail_percent:.2f}%"
             }
         }
     except Exception as e:
@@ -417,9 +423,11 @@ def get_origen_empresa_stats():
         unicas = {}
         top_3 = {}
         larga_cola = {}
+        anonimas = {}
         for origen in df["origen_proceso"].unique():
             sub = df[df["origen_proceso"] == origen]
             unicas[origen] = int(sub["empresa"].nunique())
+            anonimas[origen] = int(sub["empresa"].isna().sum())
             top_3[origen] = sub["empresa"].value_counts().head(3).to_dict()
             counts = sub["empresa"].value_counts()
             single = int((counts == 1).sum())
@@ -428,7 +436,8 @@ def get_origen_empresa_stats():
 
         return {
             "metrica": "Empresa por Origen del Proceso",
-            "empresas_unicas_por_origen": unicas,
+            "empresas_identificadas_por_origen": unicas,
+            "ofertas_anonimas_por_origen": anonimas,
             "top_3_por_origen": top_3,
             "larga_cola_por_origen": larga_cola,
         }

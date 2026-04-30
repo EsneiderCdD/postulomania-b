@@ -1,4 +1,5 @@
 import pandas as pd
+from sqlalchemy import func
 from database.db import get_session, engine, Base
 from database.models import Empresa, Oferta, CategoriaTech, Tecnologia, OfertaTecnologia, Compatibilidad
 from analytics.data.tech_registry import TECH_CATEGORIES
@@ -47,9 +48,12 @@ def save_to_db(df):
             emp_name = row.get("empresa")
             emp_id = None
             if emp_name and not pd.isna(emp_name):
-                emp = session.query(Empresa).filter_by(nombre=str(emp_name).strip()).first()
+                emp_name_clean = str(emp_name).strip()
+                emp = session.query(Empresa).filter(
+                    func.lower(Empresa.nombre) == emp_name_clean.lower()
+                ).first()
                 if not emp:
-                    emp = Empresa(nombre=str(emp_name).strip())
+                    emp = Empresa(nombre=emp_name_clean)
                     session.add(emp)
                     session.commit()
                 emp_id = emp.id

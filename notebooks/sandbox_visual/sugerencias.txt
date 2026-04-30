@@ -2,7 +2,7 @@
 Son datos crudos de 1 solo valor. No necesitan un gráfico, sino una tarjeta bonita con un número grande al inicio de tu Dashboard.
 
 Endpoint Experiencia: promedio (ej. 3.2 años), mediana, moda, tasa_entry_level.
-Endpoint Empresa: total_empresas_unicas.
+Endpoint Empresa: total_empresas_identificadas.
 Endpoint Tech-Stack: promedio_techs_por_oferta.
 Endpoint Timing: ultimas_24h (ofertas nuevas), dia_pico_absoluto.
 Endpoint Compatibilidad: tasa_descarte_sub_40.
@@ -11,7 +11,7 @@ Ideales para mostrar cómo se divide un total en proporciones o porcentajes.
 
 Endpoint Origen: distribucion_porcentaje (ej. LinkedIn 60%, GetOnBoard 30%, etc.).
 Endpoint English: proporcion_general (Gráfico simple: 65% Requiere Inglés / 35% No Requiere).
-Endpoint Empresa: analisis_larga_cola (Empresas con 1 oferta vs Empresas recurrentes).
+Endpoint Empresa: analisis_larga_cola (Empresas identificadas con 1 oferta vs Empresas recurrentes).
 3. Datos para Gráficos de Barras Horizontales (Bar Lists)
 Perfectos para rankings o Top 10/Top 15.
 
