@@ -22,7 +22,6 @@ def run_pipeline(data: list, keyword_slug: str = "dds"):
         
         df = mining.extract_experience(df)
         df = mining.extract_tech_stack(df)
-        df = mining.extract_seniority(df)
         df = mining.extract_contract_type(df)
         df = mining.extract_english(df)
         df = mining.extract_education(df)

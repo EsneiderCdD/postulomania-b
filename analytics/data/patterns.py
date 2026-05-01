@@ -3,12 +3,6 @@ import re
 # Patrones para extracción de información en descripciones y títulos
 EXP_PATTERN = re.compile(r'(\d+)\s*(?:a\s*\d+\s*)?(años?|mes(?:es)?)', re.IGNORECASE)
 
-SENIORITY_PATTERNS = {
-    "Senior": re.compile(r'\b(senior|sr|lead|arquitecto|principal)\b', re.IGNORECASE),
-    "Junior": re.compile(r'\b(junior|jr|practicante|aprendiz|trainee)\b', re.IGNORECASE),
-    "Mid": re.compile(r'\b(mid|semi-senior|semisenior|intermediate)\b', re.IGNORECASE),
-}
-
 CONTRACT_PATTERNS = {
     "Indefinido": re.compile(r'\bindefinido\b', re.IGNORECASE),
     "Obra y Labor": re.compile(r'\bobra\s*y\s*labor\b', re.IGNORECASE),

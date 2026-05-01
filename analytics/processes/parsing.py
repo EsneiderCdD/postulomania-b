@@ -5,7 +5,6 @@ import unicodedata
 from datetime import datetime, timedelta
 from analytics.data.patterns import (
     EXP_PATTERN, 
-    SENIORITY_PATTERNS, 
     CONTRACT_PATTERNS, 
     ENGLISH_PATTERN, 
     EDUCATION_PATTERNS,
@@ -72,18 +71,6 @@ def parse_location_text(val):
             unique_parts.append(p)
     return ", ".join(unique_parts)
 
-def parse_seniority(text):
-    """Categoriza el seniority basado en patrones pre-compilados."""
-    if pd.isna(text): 
-        return "No especificado"
-    
-    text_str = str(text)
-    for level, pattern in SENIORITY_PATTERNS.items():
-        if pattern.search(text_str):
-            return level
-            
-    return "No especificado"
-
 def parse_contract_type(text):
     """Identifica el tipo de contrato legal."""
     if pd.isna(text): 
@@ -115,20 +102,34 @@ def parse_education(text):
 def parse_experience(text):
     """
     Convierte el tiempo en float y hace la conversion de (meses/años).
+    Valida rango 0-15 años y prefiere matches con contexto de 'experiencia'.
     """
     if pd.isna(text): 
         return np.nan
-        
-    match = EXP_PATTERN.search(str(text))
-    if not match:
-        return np.nan
 
-    valor = float(match.group(1))
-    unidad = match.group(2)
-    
-    if 'mes' in unidad:
-        return round(valor / 12, 2)
-    return valor
+    text_str = str(text)
+    first_valid = None
+
+    for match in EXP_PATTERN.finditer(text_str):
+        valor = float(match.group(1))
+        unidad = match.group(2)
+
+        if valor > 15:
+            continue
+
+        years = round(valor / 12, 2) if 'mes' in unidad else valor
+
+        start = max(0, match.start() - 60)
+        end = min(len(text_str), match.end() + 60)
+        context = text_str[start:end].lower()
+
+        if 'experiencia' in context:
+            return years
+
+        if first_valid is None:
+            first_valid = years
+
+    return first_valid if first_valid is not None else np.nan
 
 def parse_salary_amount(val):
     """Extrae el monto numérico de una cadena de salario."""
