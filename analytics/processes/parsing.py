@@ -111,8 +111,14 @@ def parse_experience(text):
     first_valid = None
 
     for match in EXP_PATTERN.finditer(text_str):
-        valor = float(match.group(1))
-        unidad = match.group(2)
+        min_val = float(match.group(1))
+        max_val = float(match.group(2)) if match.group(2) else None
+        unidad = match.group(3)
+
+        if max_val is not None:
+            valor = round((min_val + max_val) / 2, 2)
+        else:
+            valor = min_val
 
         if valor > 15:
             continue

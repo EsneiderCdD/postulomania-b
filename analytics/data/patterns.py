@@ -1,7 +1,7 @@
 import re
 
 # Patrones para extracción de información en descripciones y títulos
-EXP_PATTERN = re.compile(r'(\d+)\s*(?:a\s*\d+\s*)?(años?|mes(?:es)?)', re.IGNORECASE)
+EXP_PATTERN = re.compile(r'(\d+)\s*(?:(?:a|-)\s*(\d+)\s*)?(años?|mes(?:es)?)', re.IGNORECASE)
 
 CONTRACT_PATTERNS = {
     "Indefinido": re.compile(r'\bindefinido\b', re.IGNORECASE),
