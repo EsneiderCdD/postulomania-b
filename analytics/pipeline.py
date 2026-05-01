@@ -1,7 +1,5 @@
 import pandas as pd
-import json
-import os
-from analytics.processes import cleaning, normalization, parsing, mining
+from analytics.processes import cleaning, normalization, mining
 
 def run_pipeline(data: list, keyword_slug: str = "dds"):
     """Procesa y enriquece los datos de ofertas en memoria."""
@@ -31,12 +29,3 @@ def run_pipeline(data: list, keyword_slug: str = "dds"):
     
     return df
 
-if __name__ == "__main__":
-    # Ejemplo de ejecución manual para DDS
-    from datetime import datetime
-    date_str = datetime.now().strftime("%Y_%m_%d")
-    slug = "dds"
-    input_file = f"scraper_{date_str}.json"
-    path = os.path.join("scrapers", "computrabajo", "data", slug, input_file)
-    
-    run_pipeline(path, keyword_slug=slug)

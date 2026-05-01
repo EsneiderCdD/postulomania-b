@@ -2,6 +2,7 @@
 TECH_KEYWORDS = {
     # Lenguajes
     'JavaScript': [r'\bjavascript\b', r'\bjs\b'],
+    'TypeScript': [r'\btypescript\b', r'\bts\b'],
     'Node.js': [r'\bnode\.js\b', r'\bnodejs\b'],
     'Python': [r'\bpython\b'],
     'Java': [r'\bjava\b(?!script)'],
@@ -9,7 +10,7 @@ TECH_KEYWORDS = {
     '.NET': [r'\b\.net\b', r'\basp\.net\b', r'\bdotnet\b'],
     'PHP': [r'\bphp\b'],
     'Ruby': [r'\bruby\b'],
-    'Go': [r'\bgo\b', r'\bgolang\b'],
+    'Go': [r'\bgolang\b'],
     'HTML': [r'\bhtml\b', r'\bhtml5\b'],
     'CSS': [r'\bcss\b', r'\bcss3\b'],
     
@@ -43,8 +44,10 @@ TECH_KEYWORDS = {
     # Mobile
     'Flutter': [r'\bflutter\b'],
     'React Native': [r'\breact native\b'],
-    'iOS': [r'\bios\b', r'\bswift\b'],
-    'Android': [r'\bandroid\b', r'\bkotlin\b'],
+    'iOS': [r'\bios\b'],
+    'Swift': [r'\bswift\b'],
+    'Android': [r'\bandroid\b'],
+    'Kotlin': [r'\bkotlin\b'],
     
     # Analítica
     'Power BI': [r'\bpower bi\b'],
@@ -58,10 +61,10 @@ TECH_CATEGORIES = {
         'Laravel', 'Django', 'Flask', 'SQL', 'MySQL', 'PostgreSQL', 'SQL Server', 'Redis'
     ],
     'frontend': [
-        'JavaScript', 'HTML', 'CSS', 'React', 'Angular', 'Vue.js'
+        'JavaScript', 'TypeScript', 'HTML', 'CSS', 'React', 'Angular', 'Vue.js'
     ],
     'mobile': [
-        'Flutter', 'React Native', 'iOS', 'Android'
+        'Flutter', 'React Native', 'iOS', 'Swift', 'Android', 'Kotlin'
     ],
     'devops': [
         'Docker', 'Kubernetes', 'Git', 'CI/CD'

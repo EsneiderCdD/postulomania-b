@@ -83,6 +83,9 @@ def save_to_db(df):
                 for t in stack:
                     if t in tech_map:
                         session.add(OfertaTecnologia(oferta_id=oferta.id, tecnologia_id=tech_map[t]))
+                    else:
+                        print(f"[WARN] Tecnologia '{t}' detectada pero NO registrada en DB. "
+                              f"Verifica que este en TECH_KEYWORDS y TECH_CATEGORIES.")
             
         session.commit()
     except Exception as e:
