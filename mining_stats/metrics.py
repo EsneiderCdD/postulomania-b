@@ -190,11 +190,29 @@ def get_oldest_record_age(df, column):
 
 def get_peak_day(df, column):
     """Calcula el día de la semana con mayor volumen de actividad (Moda temporal)."""
-    return df[column].dt.day_name().mode()[0]
+    modes = df[column].dt.day_name().mode()
+    return modes.iloc[0] if not modes.empty else None
 
 def get_weekend_dropoff_rate(df, column):
     """Calcula el porcentaje de registros que ocurren en fin de semana (Sábado/Domingo)."""
     return df[column].dt.dayofweek.isin([5, 6]).mean() * 100
+
+def get_timing_by_category(df, category_col, date_col):
+    """Retorna volumen por día, día pico y fuga de fin de semana por categoría."""
+    df[date_col] = pd.to_datetime(df[date_col])
+    vol_por_dia = {}
+    dia_pico = {}
+    fuga = {}
+    for category in df[category_col].unique():
+        sub = df[df[category_col] == category]
+        dias = sub[date_col].dt.day_name().value_counts().to_dict()
+        vol_por_dia[category] = dias
+        modes = sub[date_col].dt.day_name().mode()
+        dia_pico[category] = modes.iloc[0] if not modes.empty else None
+        weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
+        total = len(sub)
+        fuga[category] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
+    return vol_por_dia, dia_pico, fuga
 
 # Títulos (Texto)
 

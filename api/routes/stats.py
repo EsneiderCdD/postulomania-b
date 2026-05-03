@@ -37,6 +37,7 @@ from mining_stats.metrics import (
     get_oldest_record_age,
     get_peak_day,
     get_weekend_dropoff_rate,
+    get_timing_by_category,
     check_uniqueness
 )
 
@@ -390,21 +391,7 @@ def get_id_stats():
 def get_origen_timing_stats():
     try:
         df = pd.read_sql("SELECT origen_proceso, fecha_publicacion_estimada FROM ofertas", engine)
-        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
-
-        vol_por_dia = {}
-        dia_pico = {}
-        fuga = {}
-        for origen in df["origen_proceso"].unique():
-            sub = df[df["origen_proceso"] == origen]
-            dias = sub["fecha_publicacion_estimada"].dt.day_name().value_counts().to_dict()
-            vol_por_dia[origen] = dias
-            dia_modes = sub["fecha_publicacion_estimada"].dt.day_name().mode()
-            dia_pico[origen] = dia_modes.iloc[0] if not dia_modes.empty else None
-            weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
-            total = len(sub)
-            fuga[origen] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
-
+        vol_por_dia, dia_pico, fuga = get_timing_by_category(df, "origen_proceso", "fecha_publicacion_estimada")
         return {
             "metrica": "Timing por Origen del Proceso",
             "volumen_por_dia_por_origen": vol_por_dia,
@@ -452,22 +439,11 @@ def get_origen_empresa_stats():
 def get_english_timing_stats():
     try:
         df = pd.read_sql("SELECT requiere_ingles, fecha_publicacion_estimada FROM ofertas", engine)
-        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
-
-        vol_por_dia = {}
-        dia_pico = {}
-        fuga = {}
-        for val in [True, False]:
-            sub = df[df["requiere_ingles"] == val]
-            key = "Con Ingles" if val else "Sin Ingles"
-            dias = sub["fecha_publicacion_estimada"].dt.day_name().value_counts().to_dict()
-            vol_por_dia[key] = dias
-            dia_modes = sub["fecha_publicacion_estimada"].dt.day_name().mode()
-            dia_pico[key] = dia_modes.iloc[0] if not dia_modes.empty else None
-            weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
-            total = len(sub)
-            fuga[key] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
-
+        df["requiere_ingles"] = df["requiere_ingles"].fillna(False).astype(bool)
+        vol_raw, pico_raw, fuga_raw = get_timing_by_category(df, "requiere_ingles", "fecha_publicacion_estimada")
+        vol_por_dia = {("Con Ingles" if k else "Sin Ingles"): v for k, v in vol_raw.items()}
+        dia_pico = {("Con Ingles" if k else "Sin Ingles"): v for k, v in pico_raw.items()}
+        fuga = {("Con Ingles" if k else "Sin Ingles"): v for k, v in fuga_raw.items()}
         return {
             "metrica": "Timing por Requerimiento de Ingles",
             "volumen_por_dia_por_ingles": vol_por_dia,

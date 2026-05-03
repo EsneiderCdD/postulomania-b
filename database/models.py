@@ -15,6 +15,7 @@ class Oferta(Base):
     enlace = Column(Text)
     descripcion = Column(Text)
     fecha_publicacion_estimada = Column(TIMESTAMP)
+    fecha_extraccion = Column(TIMESTAMP)
     experiencia_anios = Column(Float)
     requiere_ingles = Column(Boolean)
     keyword = Column(String(100))

@@ -31,5 +31,6 @@ AUTHORIZED_JOB_TITLES = [
 # Patrones residuales extraídos de parsers
 DIGITS_ONLY_PATTERN = re.compile(r'[^\d]')
 PARENTHESES_CONTENT_PATTERN = re.compile(r'\((.*?)\)')
+DATE_MINUTES_PATTERN = re.compile(r'(\d+)\s+minutos?', re.IGNORECASE)
 DATE_HOURS_PATTERN = re.compile(r'(\d+)\s+horas?', re.IGNORECASE)
 DATE_DAYS_PATTERN = re.compile(r'(\d+)\s+días?', re.IGNORECASE)

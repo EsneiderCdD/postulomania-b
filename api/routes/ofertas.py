@@ -36,6 +36,7 @@ def get_ofertas():
             o.enlace,
             o.descripcion,
             o.fecha_publicacion_estimada,
+            o.fecha_extraccion,
             o.experiencia_anios,
             o.requiere_ingles,
             o.keyword,

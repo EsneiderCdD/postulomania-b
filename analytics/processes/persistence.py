@@ -58,13 +58,15 @@ def save_to_db(df):
                     session.commit()
                 emp_id = emp.id
 
-            fecha = row.get("fecha_publicacion_estimada")
+            fecha_pub = row.get("fecha_publicacion_estimada")
+            fecha_ext = row.get("fecha_extraccion")
             oferta = Oferta(
                 id_oferta=id_of,
                 titulo=row.get("titulo"),
                 enlace=row.get("enlace"),
                 descripcion=row.get("descripcion"),
-                fecha_publicacion_estimada=pd.to_datetime(fecha) if pd.notna(fecha) else None,
+                fecha_publicacion_estimada=pd.to_datetime(fecha_pub) if pd.notna(fecha_pub) else None,
+                fecha_extraccion=pd.to_datetime(fecha_ext) if pd.notna(fecha_ext) else None,
                 experiencia_anios=row.get("experiencia_anios"),
                 requiere_ingles=bool(row.get("requiere_ingles")) if pd.notna(row.get("requiere_ingles")) else False,
                 keyword=row.get("keyword"),

@@ -13,6 +13,7 @@ from analytics.data.patterns import (
     AUTHORIZED_JOB_TITLES,
     DIGITS_ONLY_PATTERN,
     PARENTHESES_CONTENT_PATTERN,
+    DATE_MINUTES_PATTERN,
     DATE_HOURS_PATTERN,
     DATE_DAYS_PATTERN
 )
@@ -170,21 +171,27 @@ def parse_relative_date(rel_time, base_date):
         return np.nan
     text = str(rel_time).lower()
     
-    # 1. Caso: Horas
+    # 1. Caso: Minutos
+    match_min = DATE_MINUTES_PATTERN.search(text)
+    if match_min:
+        delta = int(match_min.group(1))
+        return (base_date - timedelta(minutes=delta)).strftime('%Y-%m-%d %H:%M')
+        
+    # 2. Caso: Horas
     match_h = DATE_HOURS_PATTERN.search(text)
     if match_h:
         delta = int(match_h.group(1))
         return (base_date - timedelta(hours=delta)).strftime('%Y-%m-%d %H:%M')
         
-    # 2. Caso: Ayer
+    # 3. Caso: Ayer
     if 'ayer' in text:
         return (base_date - timedelta(days=1)).strftime('%Y-%m-%d %H:%M')
         
-    # 3. Caso: Días
+    # 4. Caso: Días
     match_d = DATE_DAYS_PATTERN.search(text)
     if match_d:
         delta = int(match_d.group(1))
         return (base_date - timedelta(days=delta)).strftime('%Y-%m-%d %H:%M')
         
-    # 4. Por defecto: Hoy
+    # 5. Por defecto: Hoy
     return base_date.strftime('%Y-%m-%d %H:%M')
