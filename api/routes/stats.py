@@ -298,7 +298,7 @@ def get_english_stats():
         
         # Formatear claves booleanas a strings legibles para JSON
         def format_bool_keys(d):
-            return {("Con Ingles" if k else "Sin Ingles"): round(float(v), 2) for k, v in d.items() if pd.notna(k)}
+            return {("Con Ingles" if k else "Sin Ingles"): round(float(v), 2) for k, v in d.items()}
         
         return {
             "metrica": "Requerimiento de Ingles",

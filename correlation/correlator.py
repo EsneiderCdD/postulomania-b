@@ -33,7 +33,7 @@ def calculate_score(offer, profile):
     # 3. PENALIZACIÓN DE INGLÉS (Multiplicador)
     # Si requiere inglés y el usuario tiene poco, el score baja proporcionalmente
     requires_english = offer.get('requiere_ingles', False)
-    user_english = profile.get('idiomas', {}).get('english', 0.0)
+    user_english = profile.get('idiomas', {}).get('ingles', 0.0)
     
     english_multiplier = 1.0
     if requires_english:
