@@ -198,10 +198,6 @@ def get_weekend_dropoff_rate(df, column):
 
 # Títulos (Texto)
 
-def get_word_frequency(df, column, n=20):
-    """[V2] Analiza los términos más frecuentes en una columna de texto."""
-    return []
-
 # Integridad (IDs)
 
 def check_uniqueness(df, column):

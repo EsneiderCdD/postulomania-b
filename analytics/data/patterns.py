@@ -10,7 +10,7 @@ CONTRACT_PATTERNS = {
     "Término Fijo": re.compile(r'\bt[eé]rmino\s*fijo\b', re.IGNORECASE),
 }
 
-ENGLISH_PATTERN = re.compile(r'\b(ingl[eé]s|english|b1|b2|c1|c2|toefl|ielts)\b', re.IGNORECASE)
+ENGLISH_PATTERN = re.compile(r'\b(ingl[eé]s|english|biling[üu]e|b1|b2|c1|c2|toefl|ielts)\b', re.IGNORECASE)
 
 EDUCATION_PATTERNS = {
     "Ingeniero": re.compile(r'\b(ingeniero|profesional|ingenier[ií]a)\b', re.IGNORECASE),

@@ -120,10 +120,10 @@ def parse_experience(text):
         else:
             valor = min_val
 
-        if valor > 15:
-            continue
-
         years = round(valor / 12, 2) if 'mes' in unidad else valor
+
+        if years > 15:
+            continue
 
         start = max(0, match.start() - 60)
         end = min(len(text_str), match.end() + 60)
