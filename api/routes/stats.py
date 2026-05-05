@@ -358,13 +358,50 @@ def get_timing_stats():
 @router.get("/timeline")
 def get_timeline_stats():
     try:
-        query = "SELECT fecha_extraccion, origen_proceso FROM ofertas WHERE fecha_extraccion IS NOT NULL"
-        df = pd.read_sql(query, engine)
-        serie, resumen = get_daily_timeline(df, 'fecha_extraccion', 'origen_proceso')
+        query_ofertas = "SELECT fecha_extraccion, origen_proceso FROM ofertas WHERE fecha_extraccion IS NOT NULL"
+        df_ofertas = pd.read_sql(query_ofertas, engine)
+        serie, resumen = get_daily_timeline(df_ofertas, 'fecha_extraccion', 'origen_proceso')
+
+        query_postulaciones = "SELECT fecha_postulacion, plataforma FROM postulaciones WHERE fecha_postulacion IS NOT NULL"
+        df_postulaciones = pd.read_sql(query_postulaciones, engine)
+        if not df_postulaciones.empty:
+            serie_post, resumen_post = get_daily_timeline(df_postulaciones, 'fecha_postulacion', 'plataforma')
+        else:
+            serie_post, resumen_post = [], {
+                "total_historico": 0, "primer_dia": None, "ultimo_dia": None,
+                "dias_con_datos": 0, "promedio_diario": 0.0, "mediana_diaria": 0.0
+            }
+
+        hoy = pd.Timestamp.now().strftime('%Y-%m-%d')
+        ofertas_hoy = next((d["total"] for d in serie if d["fecha"] == hoy), 0)
+        postulaciones_hoy = next((d["total"] for d in serie_post if d["fecha"] == hoy), 0)
+        tasa_hoy = round((postulaciones_hoy / ofertas_hoy) * 100, 1) if ofertas_hoy > 0 else 0.0
+
+        total_ofertas = resumen["total_historico"]
+        total_postulaciones = resumen_post["total_historico"]
+        tasa_historico = round((total_postulaciones / total_ofertas) * 100, 1) if total_ofertas > 0 else 0.0
+
         return {
             "metrica": "Línea de tiempo diaria",
             "serie": serie,
-            "resumen": resumen
+            "resumen": resumen,
+            "postulaciones": {
+                "serie": serie_post,
+                "resumen": resumen_post
+            },
+            "comparativa": {
+                "hoy": {
+                    "fecha": hoy,
+                    "ofertas": ofertas_hoy,
+                    "postulaciones": postulaciones_hoy,
+                    "tasa_postulacion": tasa_hoy
+                },
+                "historico": {
+                    "total_ofertas": total_ofertas,
+                    "total_postulaciones": total_postulaciones,
+                    "tasa_postulacion": tasa_historico
+                }
+            }
         }
     except Exception as e:
         return {"error": str(e)}

@@ -1,8 +1,11 @@
+from io import BytesIO
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import joinedload
 from database.db import get_session
 from database.models import Postulacion, Oferta, Empresa, EstadoProceso
 from datetime import datetime, timezone
+import pandas as pd
 
 router = APIRouter(
     prefix="/postulaciones",
@@ -37,6 +40,62 @@ def get_postulaciones():
         result = [_postulacion_to_dict(p) for p in postulaciones]
         session.close()
         return {"total": len(result), "postulaciones": result}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/export")
+def export_postulaciones(desde: str = None, hasta: str = None):
+    try:
+        session = get_session()
+        query = (
+            session.query(Postulacion)
+            .options(joinedload(Postulacion.oferta).joinedload(Oferta.empresa))
+            .order_by(Postulacion.id.desc())
+        )
+
+        if desde:
+            try:
+                desde_dt = datetime.fromisoformat(desde)
+                query = query.filter(Postulacion.fecha_postulacion >= desde_dt)
+            except ValueError:
+                session.close()
+                return {"error": "Formato de fecha invalido en 'desde'. Usa YYYY-MM-DD"}
+
+        if hasta:
+            try:
+                hasta_dt = datetime.fromisoformat(hasta)
+                query = query.filter(Postulacion.fecha_postulacion <= hasta_dt)
+            except ValueError:
+                session.close()
+                return {"error": "Formato de fecha invalido en 'hasta'. Usa YYYY-MM-DD"}
+
+        postulaciones = query.all()
+        data = []
+        for p in postulaciones:
+            oferta = p.oferta
+            data.append({
+                "Fecha Postulacion": p.fecha_postulacion.strftime("%Y-%m-%d %H:%M:%S") if p.fecha_postulacion else "",
+                "Cargo": oferta.titulo if oferta else "",
+                "Empresa": oferta.empresa.nombre if oferta and oferta.empresa else "",
+                "Plataforma": p.plataforma or "",
+                "Estado": p.estado_proceso,
+                "Link": oferta.enlace if oferta else "",
+            })
+
+        session.close()
+
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Postulaciones')
+        output.seek(0)
+
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=postulaciones.xlsx"}
+        )
     except Exception as e:
         return {"error": str(e)}
 
