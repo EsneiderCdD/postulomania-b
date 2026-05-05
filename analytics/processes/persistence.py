@@ -97,7 +97,7 @@ def save_to_db(df):
         session.close()
 
 def update_db_scores(df):
-    """Actualiza scores de compatibilidad en la base de datos."""
+    """Actualiza scores de compatibilidad en la base de datos (solo 1 score por oferta)."""
     if df is None or df.empty: return
     
     session = get_session()
@@ -109,6 +109,9 @@ def update_db_scores(df):
                 
             oferta = session.query(Oferta).filter_by(id_oferta=id_of).first()
             if oferta:
+                session.query(Compatibilidad).filter(
+                    Compatibilidad.oferta_id == oferta.id
+                ).delete(synchronize_session='fetch')
                 session.add(Compatibilidad(oferta_id=oferta.id, score=float(score)))
         session.commit()
     finally:

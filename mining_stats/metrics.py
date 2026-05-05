@@ -214,6 +214,59 @@ def get_timing_by_category(df, category_col, date_col):
         fuga[category] = f"{(weekend / total * 100):.2f}%" if total else "0.00%"
     return vol_por_dia, dia_pico, fuga
 
+# Línea de tiempo diaria
+
+def get_daily_timeline(df, date_col, category_col):
+    """Retorna serie diaria cronológica con breakdown por origen y resumen estadístico."""
+    df = df.copy()
+    df[date_col] = pd.to_datetime(df[date_col])
+    df['fecha_str'] = df[date_col].dt.strftime('%Y-%m-%d')
+
+    daily_totals = df.groupby('fecha_str').size()
+    origins_crosstab = pd.crosstab(df['fecha_str'], df[category_col]).fillna(0).astype(int)
+
+    serie = []
+    for fecha in sorted(daily_totals.index):
+        total = int(daily_totals[fecha])
+        origenes = {}
+        if fecha in origins_crosstab.index:
+            row = origins_crosstab.loc[fecha]
+            for origin in row.index:
+                val = int(row[origin])
+                if val > 0:
+                    origenes[str(origin)] = val
+        serie.append({
+            "fecha": fecha,
+            "total": total,
+            "origenes": origenes
+        })
+
+    total_historico = int(daily_totals.sum())
+    fechas_ordenadas = sorted(daily_totals.index)
+    dias_con_datos = len(fechas_ordenadas)
+
+    if dias_con_datos > 0:
+        primer_dia = fechas_ordenadas[0]
+        ultimo_dia = fechas_ordenadas[-1]
+        promedio_diario = round(float(daily_totals.mean()), 1)
+        mediana_diaria = round(float(daily_totals.median()), 1)
+    else:
+        primer_dia = None
+        ultimo_dia = None
+        promedio_diario = 0.0
+        mediana_diaria = 0.0
+
+    resumen = {
+        "total_historico": total_historico,
+        "primer_dia": primer_dia,
+        "ultimo_dia": ultimo_dia,
+        "dias_con_datos": dias_con_datos,
+        "promedio_diario": promedio_diario,
+        "mediana_diaria": mediana_diaria
+    }
+
+    return serie, resumen
+
 # Títulos (Texto)
 
 # Integridad (IDs)

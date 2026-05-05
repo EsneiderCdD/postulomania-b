@@ -38,7 +38,8 @@ from mining_stats.metrics import (
     get_peak_day,
     get_weekend_dropoff_rate,
     get_timing_by_category,
-    check_uniqueness
+    check_uniqueness,
+    get_daily_timeline
 )
 
 router = APIRouter(
@@ -350,6 +351,20 @@ def get_timing_stats():
             "antiguedad_maxima_dias": int(max_age),
             "dia_pico_absoluto": peak_day,
             "fuga_fin_de_semana": f"{weekend_rate:.2f}%"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/timeline")
+def get_timeline_stats():
+    try:
+        query = "SELECT fecha_extraccion, origen_proceso FROM ofertas WHERE fecha_extraccion IS NOT NULL"
+        df = pd.read_sql(query, engine)
+        serie, resumen = get_daily_timeline(df, 'fecha_extraccion', 'origen_proceso')
+        return {
+            "metrica": "Línea de tiempo diaria",
+            "serie": serie,
+            "resumen": resumen
         }
     except Exception as e:
         return {"error": str(e)}

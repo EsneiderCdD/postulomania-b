@@ -46,7 +46,11 @@ def get_ofertas():
             c.score AS compatibilidad
         FROM ofertas o
         LEFT JOIN empresas e ON o.empresa_id = e.id
-        LEFT JOIN compatibilidades c ON o.id = c.oferta_id
+        LEFT JOIN (
+            SELECT DISTINCT ON (oferta_id) oferta_id, score
+            FROM compatibilidades
+            ORDER BY oferta_id, fecha_calculo DESC
+        ) c ON o.id = c.oferta_id
         ORDER BY o.fecha_publicacion_estimada DESC
         """
         df = pd.read_sql(query_ofertas, engine)
