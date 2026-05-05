@@ -1,6 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, TIMESTAMP, ForeignKey, func, UniqueConstraint
+import enum
+from sqlalchemy import Column, Integer, String, Text, Float, Boolean, TIMESTAMP, ForeignKey, func, UniqueConstraint, Enum
 from sqlalchemy.orm import relationship
 from database.db import Base
+
+
+class EstadoProceso(str, enum.Enum):
+    POSTULADO = "Postulado"
+    HDV_VISTA = "HdV Vista"
+    FINALISTA = "Finalista"
+    PROCESO_FINALIZADO = "Proceso finalizado"
 
 class Empresa(Base):
     __tablename__ = 'empresas'
@@ -25,6 +33,7 @@ class Oferta(Base):
     empresa = relationship('Empresa', backref='ofertas')
     tecnologias = relationship('Tecnologia', secondary='ofertas_tecnologias', backref='ofertas')
     compatibilidades = relationship('Compatibilidad', backref='oferta', cascade="all, delete-orphan")
+    postulaciones = relationship('Postulacion', backref='oferta', cascade="all, delete-orphan")
 
 class CategoriaTech(Base):
     __tablename__ = 'categorias_tech'
@@ -50,3 +59,13 @@ class Compatibilidad(Base):
     oferta_id = Column(Integer, ForeignKey('ofertas.id', ondelete="CASCADE"))
     score = Column(Float)
     fecha_calculo = Column(TIMESTAMP, server_default=func.now())
+
+
+class Postulacion(Base):
+    __tablename__ = 'postulaciones'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    oferta_id = Column(Integer, ForeignKey('ofertas.id'), nullable=False)
+    fecha_postulacion = Column(TIMESTAMP)
+    plataforma = Column(String(100))
+    estado_proceso = Column(String(25), nullable=False)
+    
