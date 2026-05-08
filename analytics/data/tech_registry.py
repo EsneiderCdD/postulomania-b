@@ -62,7 +62,10 @@ TECH_KEYWORDS = {
     'Power BI': [r'\bpower bi\b'],
     'Tableau': [r'\btableau\b'],
     'Pandas': [r'\bpandas\b'],
-    'ETL': [r'\betl\b']
+    'ETL': [r'\betl\b'],
+    
+    # Arquitectura / Conceptos
+    'Microservicios': [r'\bmicroservicios?\b', r'\bmicroservices?\b'],
 }
 TECH_CATEGORIES = {
     'backend': [
@@ -84,5 +87,8 @@ TECH_CATEGORIES = {
     ],
     'data': [
         'MongoDB', 'Power BI', 'Tableau', 'Pandas', 'ETL'
+    ],
+    'arquitectura': [
+        'Microservicios',
     ]
 }

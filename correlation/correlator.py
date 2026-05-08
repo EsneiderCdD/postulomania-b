@@ -48,15 +48,15 @@ def calculate_score(offer, profile):
     req_edu = edu_map.get(req_edu_str, 0)
     user_edu = profile.get('nivel_educativo', 0)
     
+    effective_edu = user_edu
+    if user_exp >= 5:
+        effective_edu += 2
+    elif user_exp >= 3:
+        effective_edu += 1
+    
     edu_penalty = 1.0
-    if user_edu < req_edu:
-        # Penalización leve (10%) por no tener el título
+    if effective_edu < req_edu:
         edu_penalty = 0.9
-        
-        # COMPENSACIÓN: Si tienes más de 2 años extra de experiencia que lo pedido, ignoramos la falta de título
-        exp_diff = user_exp - (0 if pd.isna(req_exp) else req_exp)
-        if exp_diff >= 2.0:
-            edu_penalty = 1.0
 
     # CÁLCULO FINAL
     base_score = (tech_score * 0.7) + (exp_factor * 0.3)
