@@ -563,12 +563,13 @@ def get_experience_compatibility_stats():
 @router.get("/experience-timing")
 def get_experience_timing_stats():
     try:
-        df = pd.read_sql("SELECT experiencia_anios, fecha_publicacion_estimada FROM ofertas", engine)
+        df = pd.read_sql("SELECT experiencia_anios, fecha_publicacion_estimada FROM ofertas WHERE fecha_publicacion_estimada IS NOT NULL", engine)
         df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
         df["dia"] = df["fecha_publicacion_estimada"].dt.day_name()
 
-        exp_por_dia = df.groupby("dia")["experiencia_anios"].mean().round(2).to_dict()
-        mediana_por_dia = df.groupby("dia")["experiencia_anios"].median().to_dict()
+        df = df.dropna(subset=["experiencia_anios"])
+        exp_por_dia = {k: float(v) for k, v in df.groupby("dia")["experiencia_anios"].mean().round(2).to_dict().items()}
+        mediana_por_dia = {k: float(v) for k, v in df.groupby("dia")["experiencia_anios"].median().to_dict().items()}
         mejor_dia = max(exp_por_dia, key=exp_por_dia.get) if exp_por_dia else None
 
         return {
