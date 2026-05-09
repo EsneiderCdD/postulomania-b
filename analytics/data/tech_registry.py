@@ -18,6 +18,7 @@ TECH_KEYWORDS = {
     'React': [r'\breact\b', r'\breactjs\b'],
     'Angular': [r'\bangular\b'],
     'Vue.js': [r'\bvue\b', r'\bvuejs\b'],
+    'jQuery': [r'\bjquery\b'],
     'Laravel': [r'\blaravel\b'],
     'Symfony': [r'\bsymfony\b'],
     'Django': [r'\bdjango\b'],
@@ -44,10 +45,12 @@ TECH_KEYWORDS = {
     'Firebase': [r'\bfirebase\b'],
     
     # DevOps & Herramientas
+    'Linux': [r'\blinux\b'],
     'Docker': [r'\bdocker\b'],
     'Kubernetes': [r'\bkubernetes\b', r'\bk8s\b'],
     'Git': [r'\bgit\b', r'\bgithub\b', r'\bgitlab\b'],
     'CI/CD': [r'\bci/cd\b', r'\bjenkins\b'],
+    'Jira': [r'\bjira\b'],
     
     # Mobile
     'Flutter': [r'\bflutter\b'],
@@ -63,30 +66,38 @@ TECH_KEYWORDS = {
     'Tableau': [r'\btableau\b'],
     'Pandas': [r'\bpandas\b'],
     'ETL': [r'\betl\b'],
+    'Elasticsearch': [r'\belasticsearch\b', r'\belk\b'],
+    
+    # Integración / APIs
+    'REST API': [r'\brestful\b', r'\brest\s*api', r'\bapis?\s*rest'],
+    'Web Services': [r'\bweb\s*services?\b'],
+    'SOAP': [r'\bsoap\b'],
+    'JWT': [r'\bjwt\b', r'\bjson\s*web\s*token\b'],
     
     # Arquitectura / Conceptos
     'Microservicios': [r'\bmicroservicios?\b', r'\bmicroservices?\b'],
+    'SAP': [r'\bsap\b'],
 }
 TECH_CATEGORIES = {
     'backend': [
         'Python', 'Java', 'C#', '.NET', 'PHP', 'Ruby', 'Go', 'Node.js', 
         'Laravel', 'Symfony', 'Django', 'Flask', 'Express.js', 'NestJS',
-        'Spring Boot', 'GraphQL', 'SQL', 'MySQL', 'PostgreSQL', 'SQL Server', 'Oracle', 'Redis'
+        'Spring Boot', 'GraphQL', 'REST API', 'Web Services', 'SOAP', 'JWT', 'SAP', 'SQL', 'MySQL', 'PostgreSQL', 'SQL Server', 'Oracle', 'Redis'
     ],
     'frontend': [
-        'JavaScript', 'TypeScript', 'HTML', 'CSS', 'React', 'Angular', 'Vue.js', 'Next.js'
+        'JavaScript', 'TypeScript', 'HTML', 'CSS', 'React', 'Angular', 'Vue.js', 'Next.js', 'jQuery'
     ],
     'mobile': [
         'Flutter', 'React Native', 'Ionic', 'iOS', 'Swift', 'Android', 'Kotlin'
     ],
     'devops': [
-        'Docker', 'Kubernetes', 'Git', 'CI/CD'
+        'Linux', 'Docker', 'Kubernetes', 'Git', 'CI/CD', 'Jira'
     ],
     'cloud': [
         'AWS', 'Azure', 'GCP', 'Firebase'
     ],
     'data': [
-        'MongoDB', 'Power BI', 'Tableau', 'Pandas', 'ETL'
+        'MongoDB', 'Power BI', 'Tableau', 'Pandas', 'ETL', 'Elasticsearch'
     ],
     'arquitectura': [
         'Microservicios',

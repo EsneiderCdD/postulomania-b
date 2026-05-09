@@ -41,16 +41,16 @@
 - **Categorías**: Cada tech DEBE pertenecer a una categoría en `TECH_CATEGORIES` para que `seed_tech_registry()` la persista. Categorías actuales: `backend`, `frontend`, `mobile`, `devops`, `cloud`, `data`, `arquitectura`.
 - **Sin categoría** = la tech se detecta pero `save_to_db()` imprime `[WARN]` y no la persiste.
 
-### Categorías vigentes (51 techs, 7 categorías)
+### Categorías vigentes (60 techs, 7 categorías)
 
 | Categoría | Techs |
 |---|---|
-| `backend` | .NET, C#, Django, Express.js, Flask, Go, GraphQL, Java, Laravel, MySQL, NestJS, Node.js, Oracle, PHP, PostgreSQL, Python, Redis, Ruby, SQL, SQL Server, Spring Boot, Symfony |
-| `frontend` | Angular, CSS, HTML, JavaScript, Next.js, React, TypeScript, Vue.js |
+| `backend` | .NET, C#, Django, Express.js, Flask, Go, GraphQL, Java, JWT, Laravel, MySQL, NestJS, Node.js, Oracle, PHP, PostgreSQL, Python, Redis, REST API, Ruby, SAP, SOAP, SQL, SQL Server, Spring Boot, Symfony, Web Services |
+| `frontend` | Angular, CSS, HTML, JavaScript, jQuery, Next.js, React, TypeScript, Vue.js |
 | `mobile` | Android, Flutter, Ionic, Kotlin, React Native, Swift, iOS |
-| `devops` | CI/CD, Docker, Git, Kubernetes |
+| `devops` | CI/CD, Docker, Git, Jira, Kubernetes, Linux |
 | `cloud` | AWS, Azure, Firebase, GCP |
-| `data` | ETL, MongoDB, Pandas, Power BI, Tableau |
+| `data` | Elasticsearch, ETL, MongoDB, Pandas, Power BI, Tableau |
 | `arquitectura` | Microservicios |
 
 ---
@@ -62,15 +62,15 @@ Ordenadas por frecuencia de aparición en las 106 ofertas.
 | # | Tecnología | Ofertas | % | Estado |
 |---|---|---|---|---|
 | 1 | ~~Microservicios~~ | 10 | 9.4% | Hecho |
-| 2 | REST API | 9 | 8.5% | Pendiente |
-| 3 | Web Services | 8 | 7.5% | Pendiente |
-| 4 | Linux | 6 | 5.7% | Pendiente |
-| 5 | jQuery | 5 | 4.7% | Pendiente |
-| 6 | SOAP | 5 | 4.7% | Pendiente |
-| 7 | JWT | 4 | 3.8% | Pendiente |
-| 8 | Jira | 4 | 3.8% | Pendiente |
-| 9 | Elasticsearch | 3 | 2.8% | Pendiente |
-| 10 | SAP | 3 | 2.8% | Pendiente |
+| 2 | ~~REST API~~ | 9 | 8.5% | Hecho |
+| 3 | ~~Web Services~~ | 8 | 7.5% | Hecho |
+| 4 | ~~Linux~~ | 6 | 5.7% | Hecho |
+| 5 | ~~jQuery~~ | 5 | 4.7% | Hecho |
+| 6 | ~~SOAP~~ | 5 | 4.7% | Hecho |
+| 7 | ~~JWT~~ | 4 | 3.8% | Hecho |
+| 8 | ~~Jira~~ | 4 | 3.8% | Hecho |
+| 9 | ~~Elasticsearch~~ | 3 | 2.8% | Hecho |
+| 10 | ~~SAP~~ | 3 | 2.8% | Hecho |
 | 11 | Bootstrap | 2 | 1.9% | Pendiente |
 | 12 | Entity Framework | 2 | 1.9% | Pendiente |
 | 13 | Nginx | 2 | 1.9% | Pendiente |

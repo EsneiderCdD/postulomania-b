@@ -13,6 +13,7 @@
         "React": 0.4,
         "Angular": 0.0,
         "Vue.js": 0.0,
+        "jQuery": 0.0,
         "Node.js": 0.1,
         "Laravel": 0.0,
         "Django": 0.0,
@@ -21,12 +22,19 @@
         "MySQL": 0.2,
         "PostgreSQL": 0.4,
         "Microservicios": 0.0,
+        "REST API": 0.4,
+        "Web Services": 0.0,
+        "SOAP": 0.0,
+        "JWT": 0.0,
+        "SAP": 0.0,
         "MongoDB": 0.3,
         "Git": 0.3,
         "Docker": 0.1,
         "AWS": 0.0,
         "Azure": 0.0,
         "CI/CD": 0.0,
+        "Linux": 0.0,
+        "Jira": 0.0,
         "Ruby": 0.0,
         "Go": 0.0,
         "Symfony": 0.0,
@@ -50,7 +58,8 @@
         "Power BI": 0.0,
         "Tableau": 0.0,
         "Pandas": 0.0,
-        "ETL": 0.0
+        "ETL": 0.0,
+        "Elasticsearch": 0.0
     },
     "idiomas": {
         "ingles": 0.3
