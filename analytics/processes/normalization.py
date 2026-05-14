@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 from analytics.processes.parsing import (
     parse_location_text,
+    parse_location_parts,
     parse_company_name,
     parse_job_title,
     parse_salary_amount,
@@ -11,9 +12,11 @@ from analytics.processes.parsing import (
 )
 
 def normalize_locations(df: pd.DataFrame) -> pd.DataFrame:
-    """Elimina redundancias en la columna de ubicación."""
+    """Separa ubicacion en municipio y departamento canonicos."""
     if 'ubicacion' in df.columns:
-        df['ubicacion'] = df['ubicacion'].apply(parse_location_text)
+        parts = df['ubicacion'].apply(parse_location_parts)
+        df['municipio'] = parts.apply(lambda x: x[0] if x else None)
+        df['departamento'] = parts.apply(lambda x: x[1] if x else None)
     return df
 
 def normalize_companies(df: pd.DataFrame) -> pd.DataFrame:

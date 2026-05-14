@@ -14,6 +14,11 @@ class Empresa(Base):
     __tablename__ = 'empresas'
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(255))
+    direccion = Column(String(255))
+    municipio = Column(String(255))
+    departamento = Column(String(255))
+    lat = Column(Float)
+    lng = Column(Float)
 
 class Oferta(Base):
     __tablename__ = 'ofertas'
@@ -22,6 +27,8 @@ class Oferta(Base):
     titulo = Column(String(255))
     enlace = Column(Text)
     descripcion = Column(Text)
+    municipio = Column(String(255))
+    departamento = Column(String(255))
     fecha_publicacion_estimada = Column(TIMESTAMP)
     fecha_extraccion = Column(TIMESTAMP)
     experiencia_anios = Column(Float)

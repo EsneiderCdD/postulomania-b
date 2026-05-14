@@ -15,7 +15,8 @@ from analytics.data.patterns import (
     PARENTHESES_CONTENT_PATTERN,
     DATE_MINUTES_PATTERN,
     DATE_HOURS_PATTERN,
-    DATE_DAYS_PATTERN
+    DATE_DAYS_PATTERN,
+    CIUDAD_MAP
 )
 from analytics.data.tech_registry import TECH_KEYWORDS
 
@@ -71,6 +72,44 @@ def parse_location_text(val):
         if p and p not in unique_parts:
             unique_parts.append(p)
     return ", ".join(unique_parts)
+
+_IMPORTANTE_EMPRESA_PREFIX = re.compile(
+    r'^(importante\s+empresa(\s+del\s+sector)?(\s+\w+)*\s*)',
+    re.IGNORECASE
+)
+
+def parse_location_parts(val):
+    """
+    Separa un texto de ubicacion en (municipio, departamento).
+    
+    Maneja:
+      - Ratings numericos colados (4,5 / 4.6) -> (None, None)
+      - Prefijos de empresa (S.A.S., Ltda., 'Importante empresa del sector...')
+      - Duplicados tipo 'Bogota, D.C., Bogota, D.C.'
+      - Formato canonico 'Ciudad, Departamento'
+    """
+    if pd.isna(val):
+        return (None, None)
+    
+    text = str(val).strip()
+    if not text or text == '-':
+        return (None, None)
+    
+    cleaned_num = text.replace(',', '.').replace(' ', '')
+    try:
+        float(cleaned_num)
+        return (None, None)
+    except ValueError:
+        pass
+    
+    text_lower = text.lower()
+    text_lower = _IMPORTANTE_EMPRESA_PREFIX.sub('', text_lower).strip()
+    
+    for ciudad_key, (mun, depto) in sorted(CIUDAD_MAP.items(), key=lambda x: -len(x[0])):
+        if ciudad_key in text_lower:
+            return (mun, depto)
+    
+    return (None, None)
 
 def parse_contract_type(text):
     """Identifica el tipo de contrato legal."""

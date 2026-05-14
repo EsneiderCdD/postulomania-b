@@ -4,16 +4,17 @@ from analytics.pipeline import run_pipeline
 from analytics.master_sync import sync_to_master
 
 async def main():
-    """Ejecuta el ciclo de captura general (sin filtros) para Desarrollador de Software."""
+    """Ejecuta el ciclo de captura para Desarrollador de Software en Antioquia."""
     SEARCH_TERM = "Desarrollador de Software"
-    SLUG = "dds_full"
+    SLUG = "dds_antioquia"
+    LOCATION = "Antioquia"
     
     try:
         raw_data = await run_computrabajo(
             search_term=SEARCH_TERM, 
             keyword_slug=SLUG, 
             apply_filter=False,
-            location=None
+            location=LOCATION
         )
         
         df_cleaned = run_pipeline(raw_data, keyword_slug=SLUG)

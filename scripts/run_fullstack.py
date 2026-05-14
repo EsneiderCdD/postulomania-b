@@ -12,7 +12,8 @@ async def main():
         raw_data = await run_computrabajo(
             search_term=SEARCH_TERM, 
             keyword_slug=SLUG, 
-            apply_filter=False
+            apply_filter=False,
+            location=None
         )
         
         df_cleaned = run_pipeline(raw_data, keyword_slug=SLUG)

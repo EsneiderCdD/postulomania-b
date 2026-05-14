@@ -65,6 +65,8 @@ def save_to_db(df):
                 titulo=row.get("titulo"),
                 enlace=row.get("enlace"),
                 descripcion=row.get("descripcion"),
+                municipio=row.get("municipio") if pd.notna(row.get("municipio")) else None,
+                departamento=row.get("departamento") if pd.notna(row.get("departamento")) else None,
                 fecha_publicacion_estimada=pd.to_datetime(fecha_pub) if pd.notna(fecha_pub) else None,
                 fecha_extraccion=pd.to_datetime(fecha_ext) if pd.notna(fecha_ext) else None,
                 experiencia_anios=row.get("experiencia_anios"),
