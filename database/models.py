@@ -14,6 +14,7 @@ class Empresa(Base):
     __tablename__ = 'empresas'
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(255))
+    website = Column(Text)
     direccion = Column(String(255))
     municipio = Column(String(255))
     departamento = Column(String(255))
