@@ -8,15 +8,17 @@ async def run_computrabajo(
     search_term="Desarrollador de Software",
     keyword_slug="dds",
     apply_filter=True,
-    location=None
+    location=None,
+    headless=False
 ):
     """Ejecuta el scraper y retorna la lista de ofertas encontradas.
     
     Parámetros:
         location: str opcional. Departamento/ciudad para filtrar (ej: 'Antioquia').
                   Si se proporciona, la búsqueda se restringe a ese lugar.
+        headless: bool. Si True, ejecuta el navegador en modo sin interfaz gráfica.
     """
-    playwright, browser, page = await init_browser(headless=False)
+    playwright, browser, page = await init_browser(headless=headless)
     url = "https://co.computrabajo.com/"
     results = []
 

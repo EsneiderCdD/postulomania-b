@@ -48,6 +48,15 @@ async def execute_search(page, url, search_term, apply_filter=False, location=No
         if await page.locator("article.box_offer").count() > 0:
             await handle_popups(page)
             return True
+
+        no_offers_texts = [
+            "No hay más ofertas",
+            "Ya viste todas las ofertas"
+        ]
+        for text in no_offers_texts:
+            if await page.locator(f"text={text}").count() > 0:
+                return False
+
         return False
             
     except:
