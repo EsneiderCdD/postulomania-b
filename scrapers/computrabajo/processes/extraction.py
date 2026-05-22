@@ -4,19 +4,45 @@ import random
 async def extract_data(page, keyword_slug="dds"):
     all_offers = await page.locator("article.box_offer").all()
 
-    end_exists = await page.locator("text=Ya viste todas las ofertas").count() > 0
+    end_texts = [
+        "Ya viste todas las ofertas",
+        "No hay más ofertas",
+        "Estas opciones también podrían interesarte",
+        "Mira estas oportunidades",
+    ]
+
+    end_exists = False
+    for text in end_texts:
+        if await page.locator(f"text={text}").count() > 0:
+            end_exists = True
+            break
 
     if end_exists and all_offers:
         cutoff = await page.evaluate('''() => {
             const offers = [...document.querySelectorAll("article.box_offer")];
-            const xpath = "//*[contains(text(), 'Ya viste todas las ofertas')]";
-            const endMarker = document.evaluate(
-                xpath, document, null,
-                XPathResult.FIRST_ORDERED_NODE_TYPE, null
-            ).singleNodeValue;
-            if (!endMarker) return offers.length;
+            const markers = [
+                "Ya viste todas las ofertas",
+                "No hay más ofertas",
+                "Estas opciones también podrían interesarte",
+                "Mira estas oportunidades"
+            ];
+
+            let firstEnd = null;
+            for (const text of markers) {
+                const xpath = "//*[contains(text(), '" + text + "')]";
+                const el = document.evaluate(
+                    xpath, document, null,
+                    XPathResult.FIRST_ORDERED_NODE_TYPE, null
+                ).singleNodeValue;
+                if (!el) continue;
+                if (!firstEnd || (el.compareDocumentPosition(firstEnd) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+                    firstEnd = el;
+                }
+            }
+
+            if (!firstEnd) return offers.length;
             for (let i = 0; i < offers.length; i++) {
-                const pos = endMarker.compareDocumentPosition(offers[i]);
+                const pos = firstEnd.compareDocumentPosition(offers[i]);
                 if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return i;
             }
             return offers.length;

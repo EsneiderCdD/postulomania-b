@@ -17,6 +17,12 @@ from scrapers.computrabajo.main import run_computrabajo
 
 logger = logging.getLogger("postulomaniaco.scheduler")
 
+BUSQUEDAS = [
+    ("Desarrollador de Software", "Antioquia"),
+    ("Desarrollador Backend", "Antioquia"),
+    ("Desarrollador Frontend", "Antioquia"),
+]
+
 STATE_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "config",
@@ -52,60 +58,67 @@ async def start():
             notify("Postulomaniaco", "Scheduler detenido")
             break
 
-        try:
-            term = state.get("search_term", "Desarrollador de Software")
-            loc = state.get("location", "Antioquia")
-            logger.info("Ejecutando scraper: %s en %s", term, loc)
+        any_new = False
+        total_encontradas = 0
 
-            raw_data = await run_computrabajo(
-                search_term=term,
-                keyword_slug="scheduler",
-                apply_filter=True,
-                location=loc,
-                headless=True
-            )
+        for term, loc in BUSQUEDAS:
+            try:
+                logger.info("Ejecutando scraper: %s en %s", term, loc)
 
-            state["last_run"] = datetime.now().isoformat()
-
-            if raw_data:
-                df = run_pipeline(raw_data, keyword_slug="scheduler")
-                if df is not None:
-                    sync_to_master(df, slug="scheduler", keyword=term)
-
-                    session = get_session()
-                    try:
-                        offers = session.query(Oferta).all()
-                        if offers:
-                            data = [
-                                {
-                                    "id_oferta": o.id_oferta,
-                                    "titulo": o.titulo,
-                                    "tech_stack": [t.nombre for t in o.tecnologias],
-                                    "experiencia_anios": o.experiencia_anios,
-                                    "requiere_ingles": o.requiere_ingles,
-                                }
-                                for o in offers
-                            ]
-                            scores_df = apply_correlation(pd.DataFrame(data))
-                            update_db_scores(scores_df)
-                    finally:
-                        session.close()
-
-                count = len(raw_data)
-                state["last_offers_count"] = count
-                _write_state(state)
-                notify(
-                    "Postulomaniaco",
-                    f"{count} ofertas nuevas de {term} en {loc}",
+                raw_data = await run_computrabajo(
+                    search_term=term,
+                    keyword_slug="scheduler",
+                    apply_filter=True,
+                    location=loc,
+                    headless=True,
                 )
-                logger.info("Ciclo completo: %d ofertas", count)
-            else:
-                state["last_offers_count"] = 0
-                _write_state(state)
-                logger.info("Ciclo completo: 0 ofertas")
 
-        except Exception as e:
-            logger.error("Error en ciclo del scheduler: %s", e)
+                if raw_data:
+                    df = run_pipeline(raw_data, keyword_slug="scheduler")
+                    if df is not None:
+                        sync_to_master(df, slug="scheduler", keyword=term)
+                        any_new = True
+
+                    count = len(raw_data)
+                    total_encontradas += count
+                    notify(
+                        "Postulomaniaco",
+                        f"{count} ofertas de {term} en {loc}",
+                    )
+                    logger.info("Ciclo completo (%s): %d ofertas", term, count)
+                else:
+                    logger.info("Ciclo completo (%s): 0 ofertas", term)
+
+            except Exception as e:
+                logger.error("Error en scraper (%s): %s", term, e)
+
+        if any_new:
+            try:
+                session = get_session()
+                try:
+                    offers = session.query(Oferta).all()
+                    if offers:
+                        data = [
+                            {
+                                "id_oferta": o.id_oferta,
+                                "titulo": o.titulo,
+                                "tech_stack": [t.nombre for t in o.tecnologias],
+                                "experiencia_anios": o.experiencia_anios,
+                                "requiere_ingles": o.requiere_ingles,
+                            }
+                            for o in offers
+                        ]
+                        scores_df = apply_correlation(pd.DataFrame(data))
+                        update_db_scores(scores_df)
+                        logger.info("Scores de compatibilidad actualizados")
+                finally:
+                    session.close()
+            except Exception as e:
+                logger.error("Error en refresh de scores: %s", e)
+
+        state["last_run"] = datetime.now().isoformat()
+        state["last_offers_count"] = total_encontradas
+        _write_state(state)
 
         freq = state.get("frequency_minutes", 60)
         jitter = random.randint(0, state.get("jitter_minutes", 15))
