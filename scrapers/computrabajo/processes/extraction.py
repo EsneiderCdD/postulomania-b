@@ -4,6 +4,25 @@ import random
 async def extract_data(page, keyword_slug="dds"):
     all_offers = await page.locator("article.box_offer").all()
 
+    end_exists = await page.locator("text=Ya viste todas las ofertas").count() > 0
+
+    if end_exists and all_offers:
+        cutoff = await page.evaluate('''() => {
+            const offers = [...document.querySelectorAll("article.box_offer")];
+            const xpath = "//*[contains(text(), 'Ya viste todas las ofertas')]";
+            const endMarker = document.evaluate(
+                xpath, document, null,
+                XPathResult.FIRST_ORDERED_NODE_TYPE, null
+            ).singleNodeValue;
+            if (!endMarker) return offers.length;
+            for (let i = 0; i < offers.length; i++) {
+                const pos = endMarker.compareDocumentPosition(offers[i]);
+                if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return i;
+            }
+            return offers.length;
+        }''')
+        all_offers = all_offers[:cutoff]
+
     results = []
 
     async def get_safe_text(locator, selector, default="-"):
