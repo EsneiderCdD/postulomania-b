@@ -9,7 +9,8 @@ async def run_computrabajo(
     keyword_slug="dds",
     apply_filter=True,
     location=None,
-    headless=False
+    headless=False,
+    days=1
 ):
     """Ejecuta el scraper y retorna la lista de ofertas encontradas.
     
@@ -17,6 +18,7 @@ async def run_computrabajo(
         location: str opcional. Departamento/ciudad para filtrar (ej: 'Antioquia').
                   Si se proporciona, la búsqueda se restringe a ese lugar.
         headless: bool. Si True, ejecuta el navegador en modo sin interfaz gráfica.
+        days: int. Días del filtro pubdate (default 1 = hoy).
     """
     playwright, browser, page = await init_browser(headless=headless)
     url = "https://co.computrabajo.com/"
@@ -28,7 +30,8 @@ async def run_computrabajo(
             url,
             search_term,
             apply_filter=apply_filter,
-            location=location
+            location=location,
+            days=days
         )
 
         if has_offers:

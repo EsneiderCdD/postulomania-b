@@ -85,6 +85,7 @@ def get_mapa_empresas(departamento: str = Query(None)):
         if departamento:
             query_empresas += " AND e.departamento = %(dep)s"
             params["dep"] = departamento
+        query_empresas += " AND e.lat IS NOT NULL AND e.lng IS NOT NULL"
         query_empresas += " GROUP BY e.id, e.nombre, e.website, e.direccion, e.municipio, e.departamento, e.lat, e.lng ORDER BY e.nombre"
         df_empresas = pd.read_sql(query_empresas, engine, params=params if params else None)
 

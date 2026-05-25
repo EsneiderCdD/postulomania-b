@@ -10,7 +10,7 @@ def _slugify(text):
     cleaned = '-'.join(cleaned.split())
     return cleaned
 
-async def execute_search(page, url, search_term, apply_filter=False, location=None):
+async def execute_search(page, url, search_term, apply_filter=False, location=None, days=1):
     """Ejecuta la búsqueda de ofertas y gestiona filtros iniciales.
     
     Si se proporciona `location`, construye la URL con filtro de lugar:
@@ -23,7 +23,7 @@ async def execute_search(page, url, search_term, apply_filter=False, location=No
         target_url = f"https://co.computrabajo.com/trabajo-de-{term_slug}-en-{loc_slug}"
         
         if apply_filter:
-            target_url += "?pubdate=1"
+            target_url += f"?pubdate={days}"
         
         await page.goto(target_url)
     else:
@@ -40,7 +40,7 @@ async def execute_search(page, url, search_term, apply_filter=False, location=No
         if apply_filter:
             current_url = page.url
             separator = "&" if "?" in current_url else "?"
-            await page.goto(current_url + f"{separator}pubdate=1")
+            await page.goto(current_url + f"{separator}pubdate={days}")
 
     try:
         await page.wait_for_selector("article.box_offer, .bg-white.p30.tc", timeout=10000)
