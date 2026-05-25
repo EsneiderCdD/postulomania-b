@@ -9,7 +9,7 @@ router = APIRouter(
 
 
 @router.get("/ofertas")
-def get_mapa_ofertas(departamento: str = Query("Antioquia")):
+def get_mapa_ofertas(departamento: str = Query(None)):
     """Devuelve ofertas con coordenadas para mostrar en mapa Leaflet."""
     try:
         query = """
@@ -27,10 +27,13 @@ def get_mapa_ofertas(departamento: str = Query("Antioquia")):
         FROM ofertas o
         JOIN empresas e ON o.empresa_id = e.id
         WHERE e.lat IS NOT NULL
-          AND o.departamento = %(dep)s
-        ORDER BY o.fecha_publicacion_estimada DESC
         """
-        df = pd.read_sql(query, engine, params={"dep": departamento})
+        params = {}
+        if departamento:
+            query += " AND o.departamento = %(dep)s"
+            params["dep"] = departamento
+        query += " ORDER BY o.fecha_publicacion_estimada DESC"
+        df = pd.read_sql(query, engine, params=params if params else None)
 
         if df.empty:
             return {"total": 0, "ofertas": []}
@@ -60,7 +63,7 @@ def get_mapa_ofertas(departamento: str = Query("Antioquia")):
 
 
 @router.get("/empresas")
-def get_mapa_empresas(departamento: str = Query("Antioquia")):
+def get_mapa_empresas(departamento: str = Query(None)):
     """Devuelve empresas con coordenadas y sus ofertas anidadas, para mapa Leaflet."""
     try:
         query_empresas = """
@@ -76,12 +79,14 @@ def get_mapa_empresas(departamento: str = Query("Antioquia")):
             COUNT(o.id) AS total_ofertas
         FROM empresas e
         LEFT JOIN ofertas o ON o.empresa_id = e.id
-        WHERE e.lat IS NOT NULL
-          AND e.departamento = %(dep)s
-        GROUP BY e.id, e.nombre, e.website, e.direccion, e.municipio, e.departamento, e.lat, e.lng
-        ORDER BY e.nombre
+        WHERE 1=1
         """
-        df_empresas = pd.read_sql(query_empresas, engine, params={"dep": departamento})
+        params = {}
+        if departamento:
+            query_empresas += " AND e.departamento = %(dep)s"
+            params["dep"] = departamento
+        query_empresas += " GROUP BY e.id, e.nombre, e.website, e.direccion, e.municipio, e.departamento, e.lat, e.lng ORDER BY e.nombre"
+        df_empresas = pd.read_sql(query_empresas, engine, params=params if params else None)
 
         if df_empresas.empty:
             return {"total": 0, "empresas": []}

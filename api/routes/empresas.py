@@ -19,6 +19,32 @@ class EmpresaUpdate(BaseModel):
     departamento: Optional[str] = None
 
 
+@router.get("/{empresa_id}")
+def get_empresa(empresa_id: int):
+    session = get_session()
+    try:
+        empresa = session.query(Empresa).filter_by(id=empresa_id).first()
+        if not empresa:
+            raise HTTPException(status_code=404, detail="Empresa no encontrada")
+
+        return {
+            "id": empresa.id,
+            "nombre": empresa.nombre,
+            "website": empresa.website,
+            "direccion": empresa.direccion,
+            "municipio": empresa.municipio,
+            "departamento": empresa.departamento,
+            "lat": empresa.lat,
+            "lng": empresa.lng,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
 @router.put("/{empresa_id}")
 def update_empresa(empresa_id: int, data: EmpresaUpdate):
     session = get_session()
