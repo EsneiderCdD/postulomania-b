@@ -17,6 +17,7 @@ class EmpresaUpdate(BaseModel):
     website: Optional[str] = None
     municipio: Optional[str] = None
     departamento: Optional[str] = None
+    en_seguimiento: Optional[bool] = None
 
 
 @router.get("/{empresa_id}")
@@ -36,6 +37,7 @@ def get_empresa(empresa_id: int):
             "departamento": empresa.departamento,
             "lat": empresa.lat,
             "lng": empresa.lng,
+            "en_seguimiento": empresa.en_seguimiento,
         }
     except HTTPException:
         raise

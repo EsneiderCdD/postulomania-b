@@ -21,10 +21,11 @@ logging.basicConfig(
 logger = logging.getLogger("postulomaniaco.scheduler_3")
 
 BUSQUEDAS_3 = [
-    ("Desarrollador de Software", "Antioquia", "dds_antioquia_3"),
-    ("Desarrollador Backend", "Antioquia", "backend_antioquia_3"),
-    ("Desarrollador Frontend", "Antioquia", "frontend_antioquia_3"),
-    ("Desarrollador FullStack", "Antioquia", "fullstack_antioquia_3"),
+    ("Desarrollador de Software", "Antioquia", "dds_antioquia_3",                 True, 3),
+    ("Desarrollador Backend",     "Antioquia", "backend_antioquia_3",              True, 3),
+    ("Desarrollador Frontend",    "Antioquia", "frontend_antioquia_3",             True, 3),
+    ("Desarrollador FullStack",   "Antioquia", "fullstack_antioquia_3",            True, 3),
+    ("Desarrollador de Software", "Antioquia", "desarrollador_software_antioquia", False, None),
 ]
 
 FREQUENCY_MINUTES = 60
@@ -37,17 +38,17 @@ async def main():
     while True:
         total_encontradas = 0
 
-        for term, loc, slug in BUSQUEDAS_3:
+        for term, loc, slug, filtrar, dias in BUSQUEDAS_3:
             try:
-                logger.info("Ejecutando scraper: %s en %s (3 dias)", term, loc)
+                logger.info("Ejecutando scraper: %s en %s (filtrar=%s, dias=%s)", term, loc, filtrar, dias)
 
                 raw_data = await run_computrabajo(
                     search_term=term,
                     keyword_slug=slug,
-                    apply_filter=True,
+                    apply_filter=filtrar,
                     location=loc,
                     headless=True,
-                    days=3,
+                    days=dias if dias else 1,
                 )
 
                 if raw_data:

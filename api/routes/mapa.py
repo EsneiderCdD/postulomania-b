@@ -76,17 +76,17 @@ def get_mapa_empresas(departamento: str = Query(None)):
             e.departamento,
             e.lat,
             e.lng,
+            e.en_seguimiento,
             COUNT(o.id) AS total_ofertas
         FROM empresas e
         LEFT JOIN ofertas o ON o.empresa_id = e.id
-        WHERE 1=1
+        WHERE ((e.lat IS NOT NULL AND e.lng IS NOT NULL) OR e.en_seguimiento = TRUE)
         """
         params = {}
         if departamento:
             query_empresas += " AND e.departamento = %(dep)s"
             params["dep"] = departamento
-        query_empresas += " AND e.lat IS NOT NULL AND e.lng IS NOT NULL"
-        query_empresas += " GROUP BY e.id, e.nombre, e.website, e.direccion, e.municipio, e.departamento, e.lat, e.lng ORDER BY e.nombre"
+        query_empresas += " GROUP BY e.id, e.nombre, e.website, e.direccion, e.municipio, e.departamento, e.lat, e.lng, e.en_seguimiento ORDER BY e.nombre"
         df_empresas = pd.read_sql(query_empresas, engine, params=params if params else None)
 
         if df_empresas.empty:
@@ -144,10 +144,11 @@ def get_mapa_empresas(departamento: str = Query(None)):
                 "direccion": row["direccion"],
                 "municipio": row["municipio"],
                 "departamento": row["departamento"],
-                "lat": float(row["lat"]),
-                "lng": float(row["lng"]),
+                "lat": float(row["lat"]) if pd.notna(row["lat"]) else None,
+                "lng": float(row["lng"]) if pd.notna(row["lng"]) else None,
                 "total_ofertas": int(row["total_ofertas"]),
                 "ofertas": ofertas_por_empresa.get(eid, []),
+                "en_seguimiento": bool(row["en_seguimiento"]) if pd.notna(row["en_seguimiento"]) else False,
             })
 
         return {

@@ -20,6 +20,7 @@ class Empresa(Base):
     departamento = Column(String(255))
     lat = Column(Float)
     lng = Column(Float)
+    en_seguimiento = Column(Boolean, default=False)
 
 class Oferta(Base):
     __tablename__ = 'ofertas'
