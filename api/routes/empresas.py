@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy import func
 from database.db import get_session
 from database.models import Empresa
 
@@ -18,6 +19,27 @@ class EmpresaUpdate(BaseModel):
     municipio: Optional[str] = None
     departamento: Optional[str] = None
     en_seguimiento: Optional[bool] = None
+
+
+@router.get("/")
+def search_empresas(
+    q: str = Query(..., min_length=1, description="Buscar por nombre"),
+    limite: int = Query(10, ge=1, le=50),
+):
+    session = get_session()
+    try:
+        empresas = (
+            session.query(Empresa)
+            .filter(func.lower(Empresa.nombre).like(f"%{q.lower()}%"))
+            .order_by(Empresa.nombre)
+            .limit(limite)
+            .all()
+        )
+        return {"empresas": [{"id": e.id, "nombre": e.nombre} for e in empresas]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
 
 
 @router.get("/{empresa_id}")
