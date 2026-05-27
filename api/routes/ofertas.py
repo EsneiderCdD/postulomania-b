@@ -86,17 +86,52 @@ def _json_safe(val):
         return [_json_safe(v) for v in val]
     return val
 
+ALLOWED_SORT = {
+    "fecha_extraccion": "o.fecha_extraccion",
+    "compatibilidad": "c.score",
+    "experiencia_anios": "o.experiencia_anios",
+}
+
+
 @router.get("/")
-def get_ofertas(q: str = Query(None, description="Buscar por título o empresa"), limite: int = Query(20, ge=1, le=200)):
+def get_ofertas(
+    q: str = Query(None, description="Buscar por título o empresa"),
+    order_by: str = Query("fecha_extraccion", description="Ordenar por: fecha_extraccion, compatibilidad, experiencia_anios"),
+    order_dir: str = Query("desc", description="Dirección: asc, desc"),
+    page: int = Query(1, ge=1, description="Número de página"),
+    page_size: int = Query(15, ge=1, le=100, description="Items por página"),
+):
     try:
+        sort_col = ALLOWED_SORT.get(order_by, "o.fecha_extraccion")
+        sort_dir = "DESC" if order_dir.lower() == "desc" else "ASC"
+        offset = (page - 1) * page_size
+
         where_clause = ""
         params = {}
         if q:
             where_clause = "WHERE (LOWER(o.titulo) LIKE %(q)s OR LOWER(e.nombre) LIKE %(q)s)"
             params["q"] = f"%{q.lower()}%"
-            order_clause = "o.fecha_publicacion_estimada DESC"
-        else:
-            order_clause = "o.fecha_publicacion_estimada DESC"
+
+        base_from = """
+        FROM ofertas o
+        LEFT JOIN empresas e ON o.empresa_id = e.id
+        LEFT JOIN (
+            SELECT DISTINCT ON (oferta_id) oferta_id, score
+            FROM compatibilidades
+            ORDER BY oferta_id, fecha_calculo DESC
+        ) c ON o.id = c.oferta_id
+        """
+
+        query_count = f"""
+        SELECT COUNT(*)
+        {base_from}
+        {where_clause}
+        """
+        total_row = pd.read_sql(query_count, engine, params=params if q else None)
+        total = int(total_row.iloc[0, 0])
+
+        if total == 0:
+            return {"total": 0, "page": page, "page_size": page_size, "ofertas": []}
 
         query_ofertas = f"""
         SELECT
@@ -114,21 +149,15 @@ def get_ofertas(q: str = Query(None, description="Buscar por título o empresa")
             o.empresa_id,
             e.nombre AS empresa,
             c.score AS compatibilidad
-        FROM ofertas o
-        LEFT JOIN empresas e ON o.empresa_id = e.id
-        LEFT JOIN (
-            SELECT DISTINCT ON (oferta_id) oferta_id, score
-            FROM compatibilidades
-            ORDER BY oferta_id, fecha_calculo DESC
-        ) c ON o.id = c.oferta_id
+        {base_from}
         {where_clause}
-        ORDER BY {order_clause}
-        {f"LIMIT {limite}" if q else ""}
+        ORDER BY {sort_col} {sort_dir}, o.id ASC
+        LIMIT {page_size} OFFSET {offset}
         """
         df = pd.read_sql(query_ofertas, engine, params=params if q else None)
 
         if df.empty:
-            return {"total": 0, "ofertas": []}
+            return {"total": total, "page": page, "page_size": page_size, "ofertas": []}
 
         query_techs = """
         SELECT ot.oferta_id, t.nombre AS tech
@@ -153,8 +182,10 @@ def get_ofertas(q: str = Query(None, description="Buscar por título o empresa")
             ofertas.append(oferta)
 
         return {
-            "total": len(ofertas),
-            "ofertas": ofertas
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "ofertas": ofertas,
         }
 
     except Exception as e:
