@@ -169,10 +169,15 @@ def get_top_techs_by_condition(df, df_techs, condition_col, condition_value=True
 
 # Fecha de Publicación (Tiempo)
 
+DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+def _safe_day_name(series):
+    return series.dt.dayofweek.map(lambda d: DAY_NAMES[d] if 0 <= d <= 6 else None)
+
 def get_time_distribution(df, column, unit='day_name'):
     """Retorna la distribución por día de la semana o franja horaria."""
     if unit == 'day_name':
-        return df[column].dt.day_name().value_counts()
+        return _safe_day_name(df[column]).value_counts()
     elif unit == 'hour':
         return df[column].dt.hour.value_counts().sort_index()
 
@@ -190,7 +195,7 @@ def get_oldest_record_age(df, column):
 
 def get_peak_day(df, column):
     """Calcula el día de la semana con mayor volumen de actividad (Moda temporal)."""
-    modes = df[column].dt.day_name().mode()
+    modes = _safe_day_name(df[column]).mode()
     return modes.iloc[0] if not modes.empty else None
 
 def get_weekend_dropoff_rate(df, column):
@@ -199,15 +204,18 @@ def get_weekend_dropoff_rate(df, column):
 
 def get_timing_by_category(df, category_col, date_col):
     """Retorna volumen por día, día pico y fuga de fin de semana por categoría."""
-    df[date_col] = pd.to_datetime(df[date_col])
+    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+    df = df.dropna(subset=[date_col])
+    if df.empty:
+        return {}, {}, {}
     vol_por_dia = {}
     dia_pico = {}
     fuga = {}
     for category in df[category_col].unique():
         sub = df[df[category_col] == category]
-        dias = sub[date_col].dt.day_name().value_counts().to_dict()
+        dias = _safe_day_name(sub[date_col]).value_counts().to_dict()
         vol_por_dia[category] = dias
-        modes = sub[date_col].dt.day_name().mode()
+        modes = _safe_day_name(sub[date_col]).mode()
         dia_pico[category] = modes.iloc[0] if not modes.empty else None
         weekend = sum(dias.get(d, 0) for d in ["Saturday", "Sunday"])
         total = len(sub)

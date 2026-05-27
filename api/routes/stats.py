@@ -324,33 +324,41 @@ def get_timing_stats():
         query = "SELECT id, fecha_publicacion_estimada FROM ofertas"
         df = pd.read_sql(query, engine)
         
-        # Convertir a datetime
-        df['fecha_publicacion_estimada'] = pd.to_datetime(df['fecha_publicacion_estimada'])
-        
-        # Cálculos base
-        vol_dias = get_time_distribution(df, 'fecha_publicacion_estimada', unit='day_name').to_dict()
-        frec_horas = get_time_distribution(df, 'fecha_publicacion_estimada', unit='hour').to_dict()
-        
-        # Recencia
-        ultimas_24 = count_recent_records(df, 'fecha_publicacion_estimada', hours=24)
-        ultimas_48 = count_recent_records(df, 'fecha_publicacion_estimada', hours=48)
-        
-        # Complementariedad (Singularidad)
-        max_age = get_oldest_record_age(df, 'fecha_publicacion_estimada')
-        peak_day = get_peak_day(df, 'fecha_publicacion_estimada')
-        weekend_rate = get_weekend_dropoff_rate(df, 'fecha_publicacion_estimada')
-        
+        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"], errors="coerce")
+        df = df.dropna(subset=["fecha_publicacion_estimada"])
+
+        if df.empty:
+            return {
+                "metrica": "Fecha de Publicacion Estimada",
+                "volumen_por_dia": {},
+                "frecuencia_por_hora": {},
+                "recencia": {"ultimas_24h": 0, "ultimas_48h": 0},
+                "antiguedad_maxima_dias": 0,
+                "dia_pico_absoluto": None,
+                "fuga_fin_de_semana": "0.00%",
+            }
+
+        vol_dias = get_time_distribution(df, "fecha_publicacion_estimada", unit="day_name").to_dict()
+        frec_horas = get_time_distribution(df, "fecha_publicacion_estimada", unit="hour").to_dict()
+
+        ultimas_24 = count_recent_records(df, "fecha_publicacion_estimada", hours=24)
+        ultimas_48 = count_recent_records(df, "fecha_publicacion_estimada", hours=48)
+
+        max_age = get_oldest_record_age(df, "fecha_publicacion_estimada")
+        peak_day = get_peak_day(df, "fecha_publicacion_estimada")
+        weekend_rate = get_weekend_dropoff_rate(df, "fecha_publicacion_estimada")
+
         return {
             "metrica": "Fecha de Publicacion Estimada",
             "volumen_por_dia": vol_dias,
             "frecuencia_por_hora": {f"{k:02d}:00": v for k, v in frec_horas.items()},
             "recencia": {
                 "ultimas_24h": int(ultimas_24),
-                "ultimas_48h": int(ultimas_48)
+                "ultimas_48h": int(ultimas_48),
             },
             "antiguedad_maxima_dias": int(max_age),
             "dia_pico_absoluto": peak_day,
-            "fuga_fin_de_semana": f"{weekend_rate:.2f}%"
+            "fuga_fin_de_semana": f"{weekend_rate:.2f}%",
         }
     except Exception as e:
         return {"error": str(e)}
@@ -514,7 +522,14 @@ def get_experience_empresa_stats():
         LEFT JOIN empresas e ON o.empresa_id = e.id
         """
         df = pd.read_sql(query, engine)
-        df = df.dropna(subset=["empresa"])
+        df = df.dropna(subset=["empresa", "experiencia_anios"])
+
+        if df.empty:
+            return {
+                "metrica": "Experiencia por Empresa",
+                "top_experiencia_empresas": {},
+                "nivel_mas_demandado": {},
+            }
 
         exp_by_emp = df.groupby("empresa")["experiencia_anios"].mean().round(2).sort_values(ascending=False)
         top = exp_by_emp.head(10).to_dict()
@@ -564,10 +579,21 @@ def get_experience_compatibility_stats():
 def get_experience_timing_stats():
     try:
         df = pd.read_sql("SELECT experiencia_anios, fecha_publicacion_estimada FROM ofertas WHERE fecha_publicacion_estimada IS NOT NULL", engine)
-        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"])
-        df["dia"] = df["fecha_publicacion_estimada"].dt.day_name()
+        df["fecha_publicacion_estimada"] = pd.to_datetime(df["fecha_publicacion_estimada"], errors="coerce")
+        df = df.dropna(subset=["fecha_publicacion_estimada", "experiencia_anios"])
 
-        df = df.dropna(subset=["experiencia_anios"])
+        if df.empty:
+            return {
+                "metrica": "Experiencia Promedio por Dia",
+                "promedio_exp_por_dia": {},
+                "mediana_exp_por_dia": {},
+                "dia_con_mas_experiencia_promedio": None,
+            }
+
+        df["dia"] = df["fecha_publicacion_estimada"].dt.dayofweek.map(
+            lambda d: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][d] if 0 <= d <= 6 else None
+        )
+
         exp_por_dia = {k: float(v) for k, v in df.groupby("dia")["experiencia_anios"].mean().round(2).to_dict().items()}
         mediana_por_dia = {k: float(v) for k, v in df.groupby("dia")["experiencia_anios"].median().to_dict().items()}
         mejor_dia = max(exp_por_dia, key=exp_por_dia.get) if exp_por_dia else None
