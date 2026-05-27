@@ -80,12 +80,15 @@ TECH_KEYWORDS = {
 }
 TECH_CATEGORIES = {
     'backend': [
-        'Python', 'Java', 'C#', '.NET', 'PHP', 'Ruby', 'Go', 'Node.js', 
+        'Python', 'Java', 'C#', '.NET', 'PHP', 'Ruby', 'Go', 'Node.js',
         'Laravel', 'Symfony', 'Django', 'Flask', 'Express.js', 'NestJS',
-        'Spring Boot', 'GraphQL', 'REST API', 'Web Services', 'SOAP', 'JWT', 'SAP', 'SQL', 'MySQL', 'PostgreSQL', 'SQL Server', 'Oracle', 'Redis'
+        'Spring Boot', 'REST API', 'Web Services', 'SOAP', 'JWT', 'SAP', 'GraphQL',
     ],
     'frontend': [
         'JavaScript', 'TypeScript', 'HTML', 'CSS', 'React', 'Angular', 'Vue.js', 'Next.js', 'jQuery'
+    ],
+    'bases_de_datos': [
+        'SQL', 'MySQL', 'PostgreSQL', 'SQL Server', 'Oracle', 'MongoDB', 'Redis', 'Elasticsearch',
     ],
     'mobile': [
         'Flutter', 'React Native', 'Ionic', 'iOS', 'Swift', 'Android', 'Kotlin'
@@ -97,7 +100,7 @@ TECH_CATEGORIES = {
         'AWS', 'Azure', 'GCP', 'Firebase'
     ],
     'data': [
-        'MongoDB', 'Power BI', 'Tableau', 'Pandas', 'ETL', 'Elasticsearch'
+        'Power BI', 'Tableau', 'Pandas', 'ETL',
     ],
     'arquitectura': [
         'Microservicios',

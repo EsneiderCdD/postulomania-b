@@ -382,3 +382,24 @@ def update_oferta(oferta_id: int, data: OfertaUpdate):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         session.close()
+
+
+@router.delete("/{oferta_id}")
+def delete_oferta(oferta_id: int):
+    session = get_session()
+    try:
+        oferta = session.query(Oferta).filter_by(id=oferta_id).first()
+        if not oferta:
+            raise HTTPException(status_code=404, detail="Oferta no encontrada")
+
+        session.delete(oferta)
+        session.commit()
+        return {"deleted": True, "id": oferta_id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
