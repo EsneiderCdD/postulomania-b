@@ -6,7 +6,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from fastapi import FastAPI
-from api.routes import stats, ofertas, scraper, postulaciones, mapa, empresas, tecnologias, perfil
+from api.routes import stats, ofertas, scraper, postulaciones, mapa, empresas, tecnologias, perfil, seguimientos
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,6 +29,7 @@ app.include_router(mapa.router, prefix="/api/v1")
 app.include_router(empresas.router, prefix="/api/v1")
 app.include_router(tecnologias.router, prefix="/api/v1")
 app.include_router(perfil.router, prefix="/api/v1")
+app.include_router(seguimientos.router, prefix="/api/v1")
 
 
 

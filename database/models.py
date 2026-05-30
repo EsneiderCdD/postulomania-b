@@ -21,6 +21,8 @@ class Empresa(Base):
     lat = Column(Float)
     lng = Column(Float)
     en_seguimiento = Column(Boolean, default=False)
+    tipo = Column(String(50), nullable=True)
+    foto_url = Column(Text, nullable=True)
 
 class Oferta(Base):
     __tablename__ = 'ofertas'
