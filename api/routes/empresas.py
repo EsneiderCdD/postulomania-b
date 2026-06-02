@@ -19,6 +19,7 @@ class EmpresaUpdate(BaseModel):
     municipio: Optional[str] = None
     departamento: Optional[str] = None
     en_seguimiento: Optional[bool] = None
+    estado_visual: Optional[str] = None
     tipo: Optional[str] = None
     foto_url: Optional[str] = None
 
@@ -62,6 +63,7 @@ def get_empresa(empresa_id: int):
             "lat": empresa.lat,
             "lng": empresa.lng,
             "en_seguimiento": empresa.en_seguimiento,
+            "estado_visual": empresa.estado_visual,
             "tipo": empresa.tipo,
             "foto_url": empresa.foto_url,
         }

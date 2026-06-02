@@ -21,6 +21,7 @@ class Empresa(Base):
     lat = Column(Float)
     lng = Column(Float)
     en_seguimiento = Column(Boolean, default=False)
+    estado_visual = Column(String(25), nullable=True)
     tipo = Column(String(50), nullable=True)
     foto_url = Column(Text, nullable=True)
 
