@@ -15,6 +15,7 @@ ESTADO_PRIORITY = {
     "HdV Vista": 4,
     "Postulado": 3,
     "Proceso finalizado": 2,
+    "Suspendido": 1,
 }
 
 
@@ -294,7 +295,7 @@ def get_mapa_empresas_seguimiento(departamento: str = Query(None)):
                     dias = max(0, (now - pd.Timestamp(min(fechas)).tz_localize("UTC")).days)
                     return round(max(0.20, 1.0 - dias / 15.0), 4)
                 return 0.50
-            if estado in ("hdv_vista", "finalista"):
+            if estado in ("hdv_vista", "finalista", "suspendido"):
                 return 1.0
             if estado == "finalizado":
                 fechas = [
