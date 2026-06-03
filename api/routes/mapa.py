@@ -303,7 +303,7 @@ def get_mapa_empresas_seguimiento(departamento: str = Query(None)):
                 ]
                 if fechas:
                     dias = max(0, (now - pd.Timestamp(max(fechas)).tz_localize("UTC")).days)
-                    return round(max(0.05, 1.0 - dias / 60.0), 4)
+                    return round(max(0.05, 1.0 - dias / 30.0), 4)
                 return 0.06
             return 0.50
 
