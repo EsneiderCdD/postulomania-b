@@ -266,8 +266,8 @@ def get_mapa_empresas_seguimiento(departamento: str = Query(None)):
             if estado_visual:
                 return estado_visual
             if not postus:
-                return "rojo"
-            best = "rojo"
+                return "frio"
+            best = "frio"
             best_prio = 0
             for p in postus:
                 prio = ESTADO_PRIORITY.get(p["estado"], 0)
@@ -280,7 +280,7 @@ def get_mapa_empresas_seguimiento(departamento: str = Query(None)):
             return best
 
         def _opacidad(estado, fecha_max_extraccion, postus):
-            if estado == "rojo":
+            if estado == "frio":
                 if fecha_max_extraccion and pd.notna(fecha_max_extraccion):
                     dias = max(0, (now - pd.Timestamp(fecha_max_extraccion).tz_localize("UTC")).days)
                     return round(max(0.10, 1.0 - dias / 30.0), 4)
