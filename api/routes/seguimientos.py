@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException
 import pandas as pd
 import numpy as np
@@ -24,11 +26,53 @@ def _json_safe(val):
     return val
 
 
+def _compute_estado_estrella(empresa):
+    """Compute estado_estrella replicating the logic from mapa.py."""
+    if empresa.estado_visual:
+        return empresa.estado_visual
+
+    postus = []
+    try:
+        query = """
+        SELECT p.estado_proceso
+        FROM postulaciones p
+        JOIN ofertas o ON p.oferta_id = o.id
+        WHERE o.empresa_id = %(empresa_id)s
+        """
+        df = pd.read_sql(query, engine, params={"empresa_id": empresa.id})
+        postus = [{"estado": str(row["estado_proceso"])} for _, row in df.iterrows()]
+    except Exception:
+        pass
+
+    if not postus:
+        return "frio"
+
+    ESTADO_PRIORITY = {
+        "Finalista": 5,
+        "HdV Vista": 4,
+        "Postulado": 3,
+        "Proceso finalizado": 2,
+        "Suspendido": 1,
+    }
+
+    best = "frio"
+    best_prio = 0
+    for p in postus:
+        prio = ESTADO_PRIORITY.get(p["estado"], 0)
+        if prio > best_prio:
+            best_prio = prio
+            best = "postulado" if p["estado"] == "Postulado" else \
+                   "hdv_vista" if p["estado"] == "HdV Vista" else \
+                   "finalista" if p["estado"] == "Finalista" else \
+                   "finalizado"
+    return best
+
+
 @router.get("/empresas")
 def get_empresas_seguimiento():
     try:
         query = """
-        SELECT e.id, e.nombre, e.tipo, e.foto_url
+        SELECT e.id, e.nombre, e.tipo, e.foto_url, e.estado_visual
         FROM empresas e
         WHERE e.en_seguimiento = TRUE
         ORDER BY e.nombre
@@ -42,6 +86,7 @@ def get_empresas_seguimiento():
                 "nombre": row["nombre"],
                 "tipo": row["tipo"] if pd.notna(row["tipo"]) else None,
                 "foto_url": row["foto_url"] if pd.notna(row["foto_url"]) else None,
+                "estado_visual": row["estado_visual"] if pd.notna(row["estado_visual"]) else None,
             })
 
         return {"total": len(empresas), "empresas": empresas}
@@ -110,12 +155,16 @@ def get_seguimiento_detail(empresa_id: int):
                 "ofertas": int(row["ofertas"]),
             })
 
+        estado_estrella = _compute_estado_estrella(empresa)
+
         return {
             "empresa": {
                 "id": empresa.id,
                 "nombre": empresa.nombre,
                 "tipo": empresa.tipo,
                 "foto_url": empresa.foto_url,
+                "estado_visual": empresa.estado_visual,
+                "estado_estrella": estado_estrella,
             },
             "ofertas": ofertas,
             "tecnologias": tecnologias,
