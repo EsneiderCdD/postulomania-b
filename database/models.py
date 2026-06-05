@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, TIMESTAMP, ForeignKey, func, UniqueConstraint, Enum
+from sqlalchemy import Column, Integer, String, Text, Float, Boolean, TIMESTAMP, ForeignKey, func, UniqueConstraint, Enum, CheckConstraint
 from sqlalchemy.orm import relationship
 from database.db import Base
 
@@ -80,4 +80,21 @@ class Postulacion(Base):
     fecha_postulacion = Column(TIMESTAMP)
     plataforma = Column(String(100))
     estado_proceso = Column(String(25), nullable=False)
-    
+
+class Nota(Base):
+    __tablename__ = 'notas'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    oferta_id = Column(Integer, ForeignKey('ofertas.id', ondelete="CASCADE"), nullable=True)
+    empresa_id = Column(Integer, ForeignKey('empresas.id', ondelete="CASCADE"), nullable=True)
+    contenido = Column(Text, nullable=False)
+    fecha_creacion = Column(TIMESTAMP, server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint(
+            "(oferta_id IS NOT NULL AND empresa_id IS NULL) OR (oferta_id IS NULL AND empresa_id IS NOT NULL)",
+            name="notas_una_entidad"
+        ),
+    )
+
+    oferta = relationship('Oferta', backref='notas')
+    empresa = relationship('Empresa', backref='notas')
