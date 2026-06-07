@@ -72,7 +72,7 @@ def _compute_estado_estrella(empresa):
 def get_empresas_seguimiento():
     try:
         query = """
-        SELECT e.id, e.nombre, e.tipo, e.foto_url, e.estado_visual
+        SELECT e.id, e.nombre, e.website, e.tipo, e.foto_url, e.estado_visual
         FROM empresas e
         WHERE e.en_seguimiento = TRUE
         ORDER BY e.nombre
@@ -84,6 +84,7 @@ def get_empresas_seguimiento():
             empresas.append({
                 "id": int(row["id"]),
                 "nombre": row["nombre"],
+                "website": row["website"] if pd.notna(row["website"]) else None,
                 "tipo": row["tipo"] if pd.notna(row["tipo"]) else None,
                 "foto_url": row["foto_url"] if pd.notna(row["foto_url"]) else None,
                 "estado_visual": row["estado_visual"] if pd.notna(row["estado_visual"]) else None,
@@ -161,6 +162,7 @@ def get_seguimiento_detail(empresa_id: int):
             "empresa": {
                 "id": empresa.id,
                 "nombre": empresa.nombre,
+                "website": empresa.website,
                 "tipo": empresa.tipo,
                 "foto_url": empresa.foto_url,
                 "estado_visual": empresa.estado_visual,
