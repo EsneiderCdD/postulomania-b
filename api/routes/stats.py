@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+import numpy as np
 import pandas as pd
 from database.db import engine
 from mining_stats.metrics import (
@@ -42,6 +43,26 @@ from mining_stats.metrics import (
     get_daily_timeline
 )
 
+def _json_safe(obj):
+    if obj is None:
+        return None
+    if isinstance(obj, (pd.Timestamp,)):
+        return obj.strftime("%Y-%m-%d %H:%M:%S")
+    if isinstance(obj, float) and np.isnan(obj):
+        return None
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj) if not np.isnan(obj) else None
+    if isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
 router = APIRouter(
     prefix="/stats",
     tags=["stats"]
@@ -56,13 +77,13 @@ def get_origen_stats():
         mode = calculate_mode(df, 'origen_proceso')
         null_ratio = calculate_null_ratio(df, 'origen_proceso')
         
-        return {
+        return _json_safe({
             "metrica": "Origen del Proceso",
             "frecuencia": freq,
             "distribucion_porcentaje": dist,
             "moda": mode,
             "ratio_nulos": f"{null_ratio:.2f}%"
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -86,7 +107,7 @@ def get_empresa_stats():
         ofertas_anonimas = int(df['empresa'].isna().sum())
         ratio_anonimas = (ofertas_anonimas / total_ofertas * 100) if total_ofertas > 0 else 0
         
-        return {
+        return _json_safe({
             "metrica": "Empresa",
             "total_empresas_identificadas": int(unique_count),
             "total_ofertas_anonimas": ofertas_anonimas,
@@ -99,7 +120,7 @@ def get_empresa_stats():
                 "empresas_identificadas_con_una_oferta": int(single_offer_count),
                 "porcentaje_larga_cola_identificadas": f"{long_tail_percent:.2f}%"
             }
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -126,7 +147,7 @@ def get_tech_stats():
         # Formatear combinaciones para JSON
         formatted_combos = {f"{c[0][0]} + {c[0][1]}": c[1] for c in combinations}
         
-        return {
+        return _json_safe({
             "metrica": "Tech Stack",
             "total_tecnologias_unicas": int(unique_techs),
             "popularidad_top_15": popularity,
@@ -135,7 +156,7 @@ def get_tech_stats():
             "combinaciones_frecuentes": formatted_combos,
             "tecnologias_raras": rare_techs,
             "tendencia_por_origen": trends
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -156,6 +177,8 @@ def get_experience_stats():
         # Preparación para correlación
         tech_counts = df_techs.groupby('oferta_id')['tech'].count()
         df['num_techs'] = df['id'].map(tech_counts).fillna(0)
+
+        df = df.dropna(subset=["experiencia_anios"])
         
         # Cálculos
         mean_v = calculate_mean(df, 'experiencia_anios')
@@ -167,7 +190,7 @@ def get_experience_stats():
         std_v = calculate_std_dev(df, 'experiencia_anios')
         mode_v = calculate_mode(df, 'experiencia_anios')
         
-        return {
+        return _json_safe({
             "metrica": "Experiencia en Años",
             "promedio": round(float(mean_v), 2),
             "mediana": float(median_v),
@@ -180,7 +203,7 @@ def get_experience_stats():
                 "max_anios": max_exp,
                 "techs_asociadas": techs_max
             }
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -188,6 +211,8 @@ def get_experience_stats():
 def get_origen_experience_stats():
     try:
         df = pd.read_sql("SELECT id, experiencia_anios, origen_proceso FROM ofertas", engine)
+
+        df = df.dropna(subset=["experiencia_anios"])
 
         avg_by_origin = df.groupby("origen_proceso")["experiencia_anios"].mean().round(2).to_dict()
         median_by_origin = df.groupby("origen_proceso")["experiencia_anios"].median().to_dict()
@@ -207,14 +232,14 @@ def get_origen_experience_stats():
             subset = df[df["origen_proceso"] == origen]
             entry_by_origin[origen] = f"{(subset['experiencia_anios'] == 0).mean() * 100:.2f}%"
 
-        return {
+        return _json_safe({
             "metrica": "Experiencia por Origen del Proceso",
             "promedio_por_origen": avg_by_origin,
             "mediana_por_origen": median_by_origin,
             "moda_por_origen": mode_by_origin,
             "distribucion_niveles_por_origen": levels_by_origin,
             "tasa_entry_level_por_origen": entry_by_origin,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -236,7 +261,7 @@ def get_compatibility_stats():
         bottom_rate = get_below_threshold_rate(df, 'score', 40)
         min_comp, max_comp = get_absolute_range(df, 'score')
         
-        return {
+        return _json_safe({
             "metrica": "Compatibilidad",
             "promedio": round(float(avg_comp), 2),
             "mediana": float(med_comp),
@@ -245,7 +270,7 @@ def get_compatibility_stats():
             "dispersion_std": round(float(std_comp), 2),
             "tasa_descarte_sub_40": f"{bottom_rate:.2f}%",
             "rango_absoluto": {"min": float(min_comp), "max": float(max_comp)}
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -306,7 +331,7 @@ def get_english_stats():
                 result[key] = round(float(v), 2) if pd.notna(v) else 0.0
             return result
         
-        return {
+        return _json_safe({
             "metrica": "Requerimiento de Ingles",
             "proporcion_general": f"{prop_ingles:.2f}%",
             "impacto_experiencia_anios": format_bool_keys(exp_vs_ingles),
@@ -314,7 +339,7 @@ def get_english_stats():
             "impacto_compatibilidad": format_bool_keys(score_vs_ingles),
             "concentracion_por_origen": {k: f"{v:.2f}%" for k, v in concentracion.items()},
             "top_tecnologias_bilingues": top_techs
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -348,7 +373,7 @@ def get_timing_stats():
         peak_day = get_peak_day(df, "fecha_publicacion_estimada")
         weekend_rate = get_weekend_dropoff_rate(df, "fecha_publicacion_estimada")
 
-        return {
+        return _json_safe({
             "metrica": "Fecha de Publicacion Estimada",
             "volumen_por_dia": vol_dias,
             "frecuencia_por_hora": {f"{k:02d}:00": v for k, v in frec_horas.items()},
@@ -359,7 +384,7 @@ def get_timing_stats():
             "antiguedad_maxima_dias": int(max_age),
             "dia_pico_absoluto": peak_day,
             "fuga_fin_de_semana": f"{weekend_rate:.2f}%",
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -389,7 +414,7 @@ def get_timeline_stats():
         total_postulaciones = resumen_post["total_historico"]
         tasa_historico = round((total_postulaciones / total_ofertas) * 100, 1) if total_ofertas > 0 else 0.0
 
-        return {
+        return _json_safe({
             "metrica": "Línea de tiempo diaria",
             "serie": serie,
             "resumen": resumen,
@@ -410,7 +435,7 @@ def get_timeline_stats():
                     "tasa_postulacion": tasa_historico
                 }
             }
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -433,7 +458,7 @@ def get_id_stats():
         # Ejecutar auditoría
         auditoria = check_uniqueness(df, 'id')
         
-        return {
+        return _json_safe({
             "metrica": "ID de Oferta (Llave Primaria)",
             "auditoria_integridad": {
                 "total_registros_volumen": int(auditoria["Total Registros"]),
@@ -441,7 +466,7 @@ def get_id_stats():
                 "duplicados_detectados": int(auditoria["Duplicados Detectados"]),
                 "tasa_duplicidad": f"{auditoria['Tasa de Duplicidad (%)']}%"
             }
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -452,12 +477,12 @@ def get_origen_timing_stats():
     try:
         df = pd.read_sql("SELECT origen_proceso, fecha_publicacion_estimada FROM ofertas", engine)
         vol_por_dia, dia_pico, fuga = get_timing_by_category(df, "origen_proceso", "fecha_publicacion_estimada")
-        return {
+        return _json_safe({
             "metrica": "Timing por Origen del Proceso",
             "volumen_por_dia_por_origen": vol_por_dia,
             "dia_pico_por_origen": dia_pico,
             "fuga_finde_por_origen": fuga,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -485,13 +510,13 @@ def get_origen_empresa_stats():
             total_emp = len(counts)
             larga_cola[origen] = f"{(single / total_emp * 100):.2f}%" if total_emp else "0.00%"
 
-        return {
+        return _json_safe({
             "metrica": "Empresa por Origen del Proceso",
             "empresas_identificadas_por_origen": unicas,
             "ofertas_anonimas_por_origen": anonimas,
             "top_3_por_origen": top_3,
             "larga_cola_por_origen": larga_cola,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -504,12 +529,12 @@ def get_english_timing_stats():
         vol_por_dia = {("Con Ingles" if k else "Sin Ingles"): v for k, v in vol_raw.items()}
         dia_pico = {("Con Ingles" if k else "Sin Ingles"): v for k, v in pico_raw.items()}
         fuga = {("Con Ingles" if k else "Sin Ingles"): v for k, v in fuga_raw.items()}
-        return {
+        return _json_safe({
             "metrica": "Timing por Requerimiento de Ingles",
             "volumen_por_dia_por_ingles": vol_por_dia,
             "dia_pico_por_ingles": dia_pico,
             "fuga_finde_por_ingles": fuga,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -540,11 +565,11 @@ def get_experience_empresa_stats():
 
         nivel_mas_demandado = df["nivel"].value_counts().to_dict()
 
-        return {
+        return _json_safe({
             "metrica": "Experiencia por Empresa",
             "top_experiencia_empresas": top,
             "nivel_mas_demandado": nivel_mas_demandado,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -558,6 +583,8 @@ def get_experience_compatibility_stats():
         """
         df = pd.read_sql(query, engine)
 
+        df = df.dropna(subset=["experiencia_anios"])
+
         bins = [0, 1.9, 4.9, 100]
         labels = ["Junior (0-2)", "Middle (2-5)", "Senior (5+)"]
         df["nivel"] = pd.cut(df["experiencia_anios"], bins=bins, labels=labels)
@@ -566,12 +593,12 @@ def get_experience_compatibility_stats():
         corr = float(df["experiencia_anios"].corr(df["score"]))
         min_exp, max_exp = float(df["experiencia_anios"].min()), float(df["experiencia_anios"].max())
 
-        return {
+        return _json_safe({
             "metrica": "Compatibilidad por Nivel de Experiencia",
             "score_por_nivel": score_por_nivel,
             "correlacion_exp_vs_score": round(corr, 4),
             "rango_experiencia_analizado": {"min": min_exp, "max": max_exp},
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -598,12 +625,12 @@ def get_experience_timing_stats():
         mediana_por_dia = {k: float(v) for k, v in df.groupby("dia")["experiencia_anios"].median().to_dict().items()}
         mejor_dia = max(exp_por_dia, key=exp_por_dia.get) if exp_por_dia else None
 
-        return {
+        return _json_safe({
             "metrica": "Experiencia Promedio por Dia",
             "promedio_exp_por_dia": exp_por_dia,
             "mediana_exp_por_dia": mediana_por_dia,
             "dia_con_mas_experiencia_promedio": mejor_dia,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -622,11 +649,11 @@ def get_empresa_compatibility_stats():
         top = score_por_emp.head(10).to_dict()
         empresas_sin_match = [e for e, s in score_por_emp.items() if s == 0.0]
 
-        return {
+        return _json_safe({
             "metrica": "Compatibilidad por Empresa",
             "top_score_empresas": top,
             "empresas_con_match_cero": len(empresas_sin_match),
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
@@ -645,11 +672,11 @@ def get_tech_compatibility_stats():
         top = score_por_tech.head(15).to_dict()
         bottom = score_por_tech.tail(5).to_dict()
 
-        return {
+        return _json_safe({
             "metrica": "Compatibilidad por Tecnologia",
             "top_score_tecnologias": top,
             "bottom_score_tecnologias": bottom,
-        }
+        })
     except Exception as e:
         return {"error": str(e)}
 
