@@ -81,6 +81,15 @@ class Postulacion(Base):
     plataforma = Column(String(100))
     estado_proceso = Column(String(25), nullable=False)
 
+class PerfilTecnologia(Base):
+    __tablename__ = 'perfil_tecnologias'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tecnologia_id = Column(Integer, ForeignKey('tecnologias.id', ondelete="CASCADE"), unique=True, nullable=False)
+    score = Column(Float, nullable=False, default=0.0)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+    tecnologia = relationship('Tecnologia', backref='perfil_score')
+
 class Nota(Base):
     __tablename__ = 'notas'
     id = Column(Integer, primary_key=True, autoincrement=True)
