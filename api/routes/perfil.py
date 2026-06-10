@@ -30,7 +30,7 @@ def get_perfil():
         ) or 0
 
         rows = (
-            session.query(Tecnologia.nombre, CategoriaTech.nombre, PerfilTecnologia.score)
+            session.query(Tecnologia.nombre, CategoriaTech.nombre, PerfilTecnologia.score, PerfilTecnologia.id)
             .join(CategoriaTech, Tecnologia.categoria_id == CategoriaTech.id)
             .outerjoin(PerfilTecnologia, PerfilTecnologia.tecnologia_id == Tecnologia.id)
             .order_by(Tecnologia.nombre)
@@ -40,11 +40,13 @@ def get_perfil():
         tecnico: dict[str, float] = {}
         tecnologias_db: list[str] = []
         categorias: dict[str, str] = {}
+        perfil_tech_ids: dict[str, int | None] = {}
 
-        for tech_nombre, cat_nombre, score in rows:
+        for tech_nombre, cat_nombre, score, pt_id in rows:
             tecnologias_db.append(tech_nombre)
             categorias[tech_nombre] = cat_nombre or "otras"
             tecnico[tech_nombre] = round(score, 2) if score is not None else 0.0
+            perfil_tech_ids[tech_nombre] = pt_id
 
         techs_calificadas = sum(1 for s in tecnico.values() if s > 0)
         score_promedio = (
@@ -57,6 +59,7 @@ def get_perfil():
         return {
             "tecnico": tecnico,
             "categorias": categorias,
+            "perfil_tech_ids": perfil_tech_ids,
             "idiomas": {"ingles": 0.0},
             "experiencia": 0.0,
             "nivel_educativo": 0,
