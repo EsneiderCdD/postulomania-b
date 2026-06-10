@@ -2,8 +2,8 @@
 
 | ✓ | Fase | Tema | Subtema | Qué hay que definir / Hitos |
 |---|------|------|---------|-----------------------------|
-| [ ] | 1 — Definiciones previas | Arquitectura de scrapers | Ubicación | ¿Carpeta por fuente? ¿Estructura interna común? ¿Dónde vive cada scraper nuevo? |
-| [ ] | | | Contrato del scraper | ¿Qué columnas mínimas entrega un scraper al pipeline? ¿Qué metadatos? |
+| [x] | 1 — Definiciones previas | Arquitectura de scrapers | Ubicación | ¿Carpeta por fuente? ¿Estructura interna común? ¿Dónde vive cada scraper nuevo? |
+| [~] | | | Contrato del scraper | ¿Qué columnas mínimas entrega un scraper al pipeline? ¿Qué metadatos? |
 | [ ] | | | Común vs. específico | ¿Qué lógica comparten todos los scrapers y qué es propio de cada fuente? |
 | [ ] | | Pipeline de analytics | Separación scraping / analytics | ¿Dónde termina la extracción y dónde empieza la limpieza? |
 | [ ] | | | Reusabilidad | ¿Qué etapas del pipeline son genéricas y cuáles dependen del origen? |

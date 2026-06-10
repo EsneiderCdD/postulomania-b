@@ -1,0 +1,70 @@
+# Arquitectura de scrapers — Preámbulo
+
+## Primera parte — Exploración inicial
+
+### Lo que se indagó
+
+Definir la arquitectura que alojará los scrapers actuales y futuros. El foco fue resolver dónde viven, cómo se organizan internamente y qué rol juega el scheduler.
+
+### Preguntas y por qué
+
+1. ¿Los nuevos portales son en español o en otros idiomas?
+   Motivo: si hay fuentes en inglés, el pipeline de mining necesita estrategias de parsing por idioma.
+
+2. ¿Todas las fuentes entregan los mismos campos que Computrabajo?
+   Motivo: definir si el pipeline exige un esquema fijo o acepta columnas opcionales.
+
+3. ¿El scheduler debe orquestar todas las fuentes o cada una tiene el suyo?
+   Motivo: impacta el diseño del scheduler, su configuración y dónde vive cada script de automatización.
+
+### Respuestas obtenidas
+
+- Todas las fuentes nuevas son en español, locales y cercanas. El inglés no es un escenario próximo.
+- Computrabajo es el molde de referencia, pero no todas las fuentes entregarán los mismos campos.
+- El tech stack es obligatorio extraerlo de toda fuente porque sin él no hay compatibilidad.
+- La estructura actual de scrapers/computrabajo/ te parece correcta.
+- Los scripts de prueba y los de automatización deben estar separados y organizados.
+- El scheduler es el destino final de producción. Los scripts individuales sirven para testeo visual previo.
+
+### Conclusiones
+
+- La arquitectura actual es escalable. El patrón es pipeline steps as modules: main.py como orquestador que invoca funciones especializadas por proceso.
+- Cada scraper nuevo debe vivir en scrapers/<fuente>/ replicando esa estructura.
+- Los scripts de prueba deben vivir dentro de cada scraper, no en scripts/.
+- Se necesita definir un contrato mínimo para enchufar un scraper al pipeline.
+- El scheduler debe generalizarse para múltiples fuentes.
+
+---
+
+## Segunda parte — Profundización del contrato
+
+### Lo que se indagó
+
+Aclarar qué significa «contrato del scraper», qué implicaciones tiene el formato de salida y hasta dónde podemos definirlo sin conocer los otros portales.
+
+### Preguntas y por qué
+
+4. ¿list[dict] o DataFrame como formato de salida del scraper?
+   Motivo: el usuario no entendía la diferencia práctica ni por qué había que elegir. Se explicó que list[dict] es la lista de diccionarios nativa de Python; DataFrame es una tabla de pandas que usa el pipeline internamente. La conversión la hace el pipeline, no el scraper.
+
+5. ¿Tiene sentido definir columnas obligatorias y opcionales hoy?
+   Motivo: el usuario señaló que sin conocer los otros portales, definir columnas mínimas es especular y cortarse el cuello. Se acordó diferirlo.
+
+### Respuestas obtenidas
+
+- list[dict] es el formato correcto. Mantiene la separación de responsabilidades y no acopla el scraper a pandas.
+- Las columnas obligatorias y opcionales no se definen ahora. Se difiere a la auditoría del pipeline de analytics, cuando se revise qué espera realmente cada etapa.
+- El scheduler no se mezcla con el contrato del scraper. Cada tema en su lugar.
+
+### Conclusiones
+
+- El contrato del scraper por ahora define una sola cosa: el formato de salida es list[dict].
+- Lo demás (columnas, metadatos) se resolverá durante la auditoría del pipeline.
+- Testing, automatización y scheduler se conversaron pero se difirieron a sus propios temas.
+
+---
+
+## Implementación del día
+
+- Creado 03_readme.md con la documentación definitiva (estructura de carpetas + contrato del scraper).
+- Actualizados los checklist de 01_planificacion_global.md y 02_propuestas.md con [x] para lo resuelto y [~] para lo conversado y diferido.
