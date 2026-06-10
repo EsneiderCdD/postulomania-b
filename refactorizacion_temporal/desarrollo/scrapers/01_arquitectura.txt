@@ -1,0 +1,33 @@
+# Arquitectura de scrapers
+
+## Lo que se indagó hoy
+
+El objetivo de la sesión fue definir la arquitectura que alojará a los scrapers actuales y futuros. Para eso necesitaba entender tres cosas: si las nuevas fuentes comparten idioma y formato, cómo preferís organizar los archivos, y qué rol juega el scheduler en producción.
+
+## Preguntas que hice y por qué
+
+1. ¿Los nuevos portales son en español o en otros idiomas?
+   Motivo: si hay fuentes en inglés, el pipeline de mining necesita estrategias de parsing por idioma. Eso impacta el contrato del scraper.
+
+2. ¿Todas las fuentes entregan los mismos campos que Computrabajo?
+   Motivo: definir si el pipeline exige un esquema fijo o acepta columnas opcionales. De esto depende qué tan genérico puede ser el pipeline.
+
+3. ¿El scheduler debe orquestar todas las fuentes o cada una tiene el suyo?
+   Motivo: impacta el diseño del scheduler, su configuración y dónde vive cada script de automatización.
+
+## Respuestas obtenidas
+
+- Todas las fuentes nuevas son en español, locales y cercanas. El inglés no es un escenario próximo.
+- Computrabajo es el molde de referencia, pero no se espera que todas las fuentes entreguen los mismos campos. Hay datos que se perderán y otros que serán diferentes.
+- El tech stack es obligatorio extraerlo de toda fuente porque sin él no hay compatibilidad.
+- La estructura actual de scrapers/computrabajo/ (carpeta por fuente, subcarpeta processes/ con search, extraction, popups, persistence, y main.py como orquestador) te parece correcta.
+- Los scripts de prueba y los de automatización deben estar separados y organizados. Hoy están todos mezclados en scripts/ y eso genera ruido.
+- El scheduler es el destino final de producción. Los scripts individuales sirven para testeo visual antes de integrar al scheduler.
+
+## Conclusiones
+
+- La arquitectura actual de scrapers es escalable. El patrón usado es un orquestador (main.py) que invoca funciones especializadas por proceso (search, extraction, popups). No tiene un nombre oficial pero informalmente puede llamarse "pipeline steps as modules".
+- Cada scraper nuevo debe vivir en scrapers/<nombre_fuente>/ replicando esa misma estructura interna.
+- Los scripts de prueba deben vivir dentro de cada scraper, no en scripts/.
+- Se necesita definir un contrato mínimo: qué columnas son obligatorias y cuáles opcionales para que un scraper se enchufe al pipeline.
+- El scheduler debe generalizarse para iterar múltiples fuentes en vez de tener búsquedas fijas hardcodeadas.
