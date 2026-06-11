@@ -1,0 +1,98 @@
+# Testing vs. Automatización — Preámbulo
+
+## Primera parte — Scripts de prueba visual
+
+### Lo que se indagó
+
+Dónde ubicar los 12 scripts run_*.py que hoy están en scripts/ y qué nomenclatura usar.
+
+### Preguntas y por qué
+
+1. ¿Carpeta global (scripts/) o dentro de cada scraper?
+   Motivo: con nuevos portales, scripts/ se satura. Co-localizar con el scraper que prueban es más escalable.
+
+2. ¿Nomenclatura: tests/ o runners/?
+   Motivo: tests/ es estándar de la industria. runners/ describe mejor que son ejecución visual sin assertions.
+   Se optó por tests/ por convención.
+
+### Respuestas obtenidas
+
+- Los 12 run_*.py se mueven a scrapers/computrabajo/tests/.
+- Son scripts de desarrollo (headless=False). El scheduler es el único punto productivo (headless=True).
+- Las importaciones son absolutas, mover los archivos no rompe nada.
+- No se borra ninguno. Solo se reubica.
+- El patrón se replica en scrapers/<nueva_fuente>/tests/ cuando lleguen nuevos portales.
+
+### Conclusiones
+
+- Cada scraper aloja sus propios scripts visuales. scripts/ deja de acumular run_*.py.
+- La separación testing visual (scraper) vs. automatización (scheduler) queda clara.
+
+---
+
+## Segunda parte — Estrategias de testing para scrapers
+
+### Lo que se indagó
+
+Qué niveles de testing automatizado pueden complementar el testing visual. El usuario no tiene experiencia
+previa y quiere conocer opciones.
+
+### Preguntas y por qué
+
+3. ¿Cómo testear scrapers más allá del ojo humano?
+   Motivo: el testing visual no escala ni se automatiza. Interesa saber qué existe sin implementarlo hoy.
+
+### Respuestas obtenidas
+
+Se identificaron tres niveles, del más simple al más sofisticado:
+
+- Nivel 1 — Testing visual (ya existente): headless=False, validar a ojo. No se abandona.
+- Nivel 2 — Smoke test: headless=True + assertions básicas (¿devolvió datos?, ¿llaves mínimas?,
+  ¿cantidad razonable?). Corre con pytest en segundos. El más rentable para empezar.
+- Nivel 3 — Snapshot test: HTML fijo como fixture, mock de Playwright, resultado comparado con JSON
+  esperado. Detecta regresiones en lógica de extracción sin depender de internet.
+
+### Conclusiones
+
+- Ambos niveles (2 y 3) quedan documentados como opciones futuras. No se implementan hoy.
+- El Nivel 2 será el punto de entrada cuando se decida invertir en testing automatizado.
+
+---
+
+## Tercera parte — Ubicación del scheduler
+
+### Lo que se indagó
+
+El scheduler está disperso en modules/scheduler.py y scripts/scheduler/. Se buscó una ubicación que
+refleje su rol como orquestador de producción.
+
+### Preguntas y por qué
+
+4. ¿El scheduler debe vivir en scripts/ o en carpeta propia en raíz?
+   Motivo: no es un script auxiliar, es el punto de entrada productivo. Tratarlo como un script más
+   diluye su importancia y dispersa sus archivos.
+
+### Respuestas obtenidas
+
+- El scheduler tendrá carpeta propia en raíz: scheduler/.
+- Contendrá: orchestrator.py (lógica), run.py, start.py, stop.py, status.py.
+- scheduler_state.json se queda en config/ (es estado, no lógica).
+- run_3.py y start_3.py son variantes vestigio; se mueven sin tocar para no borrar nada hoy.
+
+### Conclusiones
+
+- scheduler/ en raíz, independiente de los scrapers, listo para orquestar múltiples fuentes.
+- La dispersión modules/ + scripts/scheduler/ se consolida en una sola carpeta.
+
+---
+
+## Implementación del día
+
+- Creado 01_pre-ambulo.txt (este archivo).
+- Pendiente: mover archivos físicamente y ajustar rutas de importación.
+- Movimientos definidos:
+  - 12 run_*.py → scrapers/computrabajo/tests/
+  - modules/scheduler.py → scheduler/orchestrator.py
+  - scripts/scheduler/* → scheduler/*
+  - Ajustar imports en scheduler/run.py y scheduler/start.py
+- scripts/ retiene (sin tocar): migrate_*.py, reset_db.py, run_refresh_master.py, semantic/

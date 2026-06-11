@@ -8,9 +8,9 @@
 | [ ] | | Pipeline de analytics | Separación scraping / analytics | ¿Dónde termina la extracción y dónde empieza la limpieza? |
 | [ ] | | | Reusabilidad | ¿Qué etapas del pipeline son genéricas y cuáles dependen del origen? |
 | [ ] | | | Formato de entrada | ¿Qué estructura de datos espera el pipeline? ¿DataFrame con qué columnas? |
-| [ ] | | Testing vs. automatización | Scripts visuales | ¿Dónde viven los scripts con navegador abierto? ¿Nomenclatura? |
-| [ ] | | | Scripts headless | ¿Dónde viven los scripts del scheduler? ¿Cómo se invocan? |
-| [ ] | | | Convivencia o separación | ¿Ambos tipos de script en la misma carpeta o en carpetas distintas? |
+| [x] | | Testing vs. automatización | Scripts visuales | ¿Dónde viven los scripts con navegador abierto? ¿Nomenclatura? |
+| [x] | | | Scripts headless | ¿Dónde viven los scripts del scheduler? ¿Cómo se invocan? |
+| [x] | | | Convivencia o separación | ¿Ambos tipos de script en la misma carpeta o en carpetas distintas? |
 | [ ] | | Scheduler | Generalización | ¿Se vuelve genérico para múltiples fuentes o se mantiene acoplado? |
 | [ ] | | | Configuración | ¿Cómo se define qué buscar por fuente? ¿Estado y frecuencia por fuente? |
 | [ ] | | Convenciones | Nomenclatura | Convención para archivos, carpetas, funciones, clases. |

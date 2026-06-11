@@ -4,7 +4,7 @@ import socket
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATE_PATH = os.path.join(ROOT, "config", "scheduler_state.json")
 PORT = 8000
 
@@ -43,11 +43,11 @@ if __name__ == "__main__":
 
     print("Iniciando scheduler...")
     scheduler_proc = subprocess.Popen(
-        [sys.executable, "scripts/scheduler/run.py"],
+        [sys.executable, "scheduler/run.py"],
         cwd=ROOT,
         creationflags=creationflags
     )
 
     print(f"API (PID {api_proc.pid}) y scheduler (PID {scheduler_proc.pid}) iniciados.")
-    print("Para detener el scheduler: python scripts/scheduler/stop.py")
+    print("Para detener el scheduler: python scheduler/stop.py")
     print("Para detener la API: cierra la ventana de uvicorn (Ctrl+C).")

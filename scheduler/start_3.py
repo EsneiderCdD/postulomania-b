@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 creationflags = subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0
 
@@ -15,7 +15,7 @@ api_proc = subprocess.Popen(
 
 print("Iniciando scheduler _3 (4 búsquedas secuenciales, 3 días, Antioquia)...")
 scheduler_proc = subprocess.Popen(
-    [sys.executable, "scripts/scheduler/run_3.py"],
+    [sys.executable, "scheduler/run_3.py"],
     cwd=ROOT,
     creationflags=creationflags
 )
