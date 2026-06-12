@@ -1,63 +1,34 @@
-import unicodedata
+from .selectors import OFFERS_CARD, STOP_TEXTS, NO_RESULTS_CONTAINER
 from .popups import handle_popups
 
 def _slugify(text):
     """Convierte texto a slug compatible con URLs de Computrabajo."""
-    normalized = unicodedata.normalize('NFKD', str(text))
-    ascii_text = normalized.encode('ascii', 'ignore').decode()
-    cleaned = ascii_text.lower().strip()
-    cleaned = cleaned.replace(',', ' ').replace('.', ' ')
-    cleaned = '-'.join(cleaned.split())
-    return cleaned
+    return str(text).lower().strip().replace(' ', '-')
 
-async def execute_search(page, url, search_term, apply_filter=False, location=None, days=1):
-    """Ejecuta la búsqueda de ofertas y gestiona filtros iniciales.
-    
-    Si se proporciona `location`, construye la URL con filtro de lugar:
-        /trabajo-de-{search_term}-en-{location}
-    y navega directamente, sin pasar por el formulario de búsqueda."""
-    
-    if location:
-        term_slug = _slugify(search_term)
-        loc_slug = _slugify(location)
-        target_url = f"https://co.computrabajo.com/trabajo-de-{term_slug}-en-{loc_slug}"
-        
-        if apply_filter:
-            target_url += f"?pubdate={days}"
-        
-        await page.goto(target_url)
-    else:
-        await page.goto(url)
-        
-        try:
-            search_selector = "input[placeholder*='Cargo']"
-            await page.wait_for_selector(search_selector, timeout=5000)
-            await page.fill(search_selector, search_term)
-            await page.press(search_selector, "Enter")
-        except:
-            return False
+async def execute_search(page, search_term, location, apply_filter=True, days=1):
+    """Ejecuta la búsqueda de ofertas en Computrabajo usando URL directa con ubicación."""
 
-        if apply_filter:
-            current_url = page.url
-            separator = "&" if "?" in current_url else "?"
-            await page.goto(current_url + f"{separator}pubdate={days}")
+    term_slug = _slugify(search_term)
+    loc_slug = _slugify(location)
+    target_url = f"https://co.computrabajo.com/trabajo-de-{term_slug}-en-{loc_slug}"
+
+    if apply_filter:
+        target_url += f"?pubdate={days}"
+
+    await page.goto(target_url)
 
     try:
-        await page.wait_for_selector("article.box_offer, .bg-white.p30.tc", timeout=10000)
-        
-        if await page.locator("article.box_offer").count() > 0:
+        await page.wait_for_selector(f"{OFFERS_CARD}, {NO_RESULTS_CONTAINER}", timeout=10000)
+
+        if await page.locator(OFFERS_CARD).count() > 0:
             await handle_popups(page)
             return True
 
-        no_offers_texts = [
-            "No hay más ofertas",
-            "Ya viste todas las ofertas"
-        ]
-        for text in no_offers_texts:
+        for text in STOP_TEXTS:
             if await page.locator(f"text={text}").count() > 0:
                 return False
 
         return False
-            
-    except:
+
+    except Exception:
         return False

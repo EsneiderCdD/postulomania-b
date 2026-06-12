@@ -5,29 +5,20 @@ from modules.browser import init_browser
 
 
 async def run_computrabajo(
-    search_term="Desarrollador de Software",
-    keyword_slug="dds",
+    search_term,
+    keyword_slug,
+    location,
     apply_filter=True,
-    location=None,
     headless=False,
     days=1
 ):
-    """Ejecuta el scraper y retorna la lista de ofertas encontradas.
-    
-    Parámetros:
-        location: str opcional. Departamento/ciudad para filtrar (ej: 'Antioquia').
-                  Si se proporciona, la búsqueda se restringe a ese lugar.
-        headless: bool. Si True, ejecuta el navegador en modo sin interfaz gráfica.
-        days: int. Días del filtro pubdate (default 1 = hoy).
-    """
     playwright, browser, page = await init_browser(headless=headless)
-    url = "https://co.computrabajo.com/"
+  
     results = []
 
     try:
         has_offers = await execute_search(
             page,
-            url,
             search_term,
             apply_filter=apply_filter,
             location=location,
@@ -42,7 +33,3 @@ async def run_computrabajo(
         await playwright.stop()
         
     return results
-
-
-if __name__ == "__main__":
-    asyncio.run(run_computrabajo())
