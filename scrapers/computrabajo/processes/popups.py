@@ -1,28 +1,24 @@
-async def handle_popups(page):
-    popup_selector = "#pop-up-webpush-sub"
-    close_button_selector = f"{popup_selector} button[onclick*='webpush_subscribe_ko']"
+from .selectors import POPUP
 
-    popup_locator = page.locator(popup_selector)
+async def handle_popups(page):
+    popup_locator = page.locator(POPUP["selector"])
 
     if not (await popup_locator.count() > 0 and await popup_locator.is_visible()):
         return
 
-    try:
-        await page.locator(close_button_selector).first.click(timeout=3000)
-    except:
+    for strategy in POPUP["close_strategies"]:
         try:
-            await page.click(
-                f"{popup_selector} button:has-text('Ahora no')",
-                timeout=2000
-            )
-        except:
-            pass
+            selector = f"{POPUP['selector']} {strategy}"
+            await page.locator(selector).first.click(timeout=3000)
+            break
+        except Exception:
+            continue
 
     try:
         await page.wait_for_selector(
-            popup_selector,
+            POPUP["selector"],
             state="hidden",
             timeout=3000
         )
-    except:
+    except Exception:
         pass
