@@ -18,6 +18,7 @@ from correlation.correlator import apply_correlation
 from database.db import get_session
 from database.models import Oferta
 from scrapers.computrabajo.main import run_computrabajo
+from scrapers.computrabajo.searches import COMPUTRABAJO_SEARCHES
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,17 +26,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("postulomaniaco.scheduler_3")
-
-BUSQUEDAS_3 = [
-    ("Desarrollador de Software", "Antioquia", "dds_antioquia_3",                 True,   3),
-    ("Desarrollador de Software", "Antioquia", "desarrollador_software_antioquia", False, None),
-    ("Desarrollador Backend",     "Antioquia", "backend_antioquia_3",              True,   3),
-    ("Desarrollador Backend",     "Antioquia", "backend_antioquia_todas",          False, None),
-    ("Desarrollador Frontend",    "Antioquia", "frontend_antioquia_3",             True,   3),
-    ("Desarrollador Frontend",    "Antioquia", "frontend_antioquia_todas",         False, None),
-    ("Desarrollador FullStack",   "Antioquia", "fullstack_antioquia_3",            True,   3),
-    ("Desarrollador FullStack",   "Antioquia", "fullstack_antioquia_todas",        False, None),
-]
 
 FREQUENCY_MINUTES = 60
 JITTER_MINUTES = 15
@@ -49,7 +39,7 @@ async def main():
     while True:
         total_encontradas = 0
 
-        for i, (term, loc, slug, filtrar, dias) in enumerate(BUSQUEDAS_3):
+        for i, (term, loc, slug, filtrar, dias) in enumerate(COMPUTRABAJO_SEARCHES):
             try:
                 logger.info("Ejecutando scraper: %s en %s (filtrar=%s, dias=%s)", term, loc, filtrar, dias)
 
@@ -59,7 +49,7 @@ async def main():
                     apply_filter=filtrar,
                     location=loc,
                     headless=True,
-                    days=dias if dias else 1,
+                    days=dias,
                 )
 
                 if raw_data:
@@ -76,7 +66,7 @@ async def main():
             except Exception as e:
                 logger.error("Error en scraper (%s): %s", term, e)
 
-            if i < len(BUSQUEDAS_3) - 1:
+            if i < len(COMPUTRABAJO_SEARCHES) - 1:
                 delay = random.randint(INTER_SEARCH_DELAY_MIN, INTER_SEARCH_DELAY_MAX)
                 logger.info("Pausa entre búsquedas: %d segundos", delay)
                 await asyncio.sleep(delay)

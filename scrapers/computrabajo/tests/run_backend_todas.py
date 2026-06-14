@@ -1,20 +1,19 @@
 import asyncio
 from scrapers.computrabajo.main import run_computrabajo
+from scrapers.computrabajo.searches import BACKEND_TODAS as _SRC
 from analytics.pipeline import run_pipeline
 from analytics.master_sync import sync_to_master
 
 async def main():
-    """Ejecuta el ciclo de captura (hoy) para Desarrollador Backend en Antioquia."""
-    SEARCH_TERM = "Desarrollador Backend"
-    SLUG = "backend_antioquia_1"
-    LOCATION = "Antioquia"
+    """Ejecuta el ciclo de captura (todas, sin filtro) para Desarrollador Backend en Antioquia."""
+    SEARCH_TERM, LOCATION, SLUG, APPLY_FILTER, DAYS = _SRC
 
     try:
         raw_data = await run_computrabajo(
             search_term=SEARCH_TERM,
             keyword_slug=SLUG,
-            apply_filter=True,
-            location=LOCATION
+            apply_filter=APPLY_FILTER,
+            location=LOCATION,
         )
 
         df_cleaned = run_pipeline(raw_data, keyword_slug=SLUG)
