@@ -6,7 +6,6 @@ from modules.browser import init_browser
 
 async def run_computrabajo(
     search_term,
-    keyword_slug,
     location,
     apply_filter=True,
     headless=False,
