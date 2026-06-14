@@ -26,7 +26,7 @@ async def run_computrabajo(
         )
 
         if has_offers:
-            results = await extract_data(page, keyword_slug=keyword_slug)
+            results = await extract_data(page)
 
     finally:
         await browser.close()

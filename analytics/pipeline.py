@@ -16,7 +16,6 @@ def run_pipeline(data: list, keyword_slug: str = "dds"):
         df = normalization.normalize_locations(df)
         df = normalization.normalize_companies(df)
         df = normalization.normalize_titles(df)
-        df = normalization.normalize_salaries(df)
         df = normalization.normalize_ratings(df)
         df = normalization.normalize_dates(df)
         

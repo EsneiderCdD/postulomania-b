@@ -1,52 +1,42 @@
 import asyncio
 import random
+from .selectors import OFFERS_CARD, STOP_TEXTS, BASE_URL, TITLE_LINK, COMPANY_LINK, RATING, LOCATION, MODALITY, PUBLISHED_TIME, DESCRIPTION
 
-async def extract_data(page, keyword_slug="dds"):
-    all_offers = await page.locator("article.box_offer").all()
-
-    end_texts = [
-        "Ya viste todas las ofertas",
-        "No hay más ofertas",
-        "Estas opciones también podrían interesarte",
-        "Mira estas oportunidades",
-    ]
+async def extract_data(page):
+    all_offers = await page.locator(OFFERS_CARD).all()
 
     end_exists = False
-    for text in end_texts:
+    for text in STOP_TEXTS:
         if await page.locator(f"text={text}").count() > 0:
             end_exists = True
             break
 
     if end_exists and all_offers:
-        cutoff = await page.evaluate('''() => {
-            const offers = [...document.querySelectorAll("article.box_offer")];
-            const markers = [
-                "Ya viste todas las ofertas",
-                "No hay más ofertas",
-                "Estas opciones también podrían interesarte",
-                "Mira estas oportunidades"
-            ];
+        cutoff = await page.evaluate('''
+            (offers_selector, marker_texts) => {
+                const offers = [...document.querySelectorAll(offers_selector)];
 
-            let firstEnd = null;
-            for (const text of markers) {
-                const xpath = "//*[contains(text(), '" + text + "')]";
-                const el = document.evaluate(
-                    xpath, document, null,
-                    XPathResult.FIRST_ORDERED_NODE_TYPE, null
-                ).singleNodeValue;
-                if (!el) continue;
-                if (!firstEnd || (el.compareDocumentPosition(firstEnd) & Node.DOCUMENT_POSITION_FOLLOWING)) {
-                    firstEnd = el;
+                let cut_marker = null;
+                for (const text of marker_texts) {
+                    const xpath_query = "//*[contains(text(), '" + text + "')]";
+                    const element = document.evaluate(
+                        xpath_query, document, null,
+                        XPathResult.FIRST_ORDERED_NODE_TYPE, null
+                    ).singleNodeValue;
+                    if (!element) continue;
+                    if (!cut_marker || (element.compareDocumentPosition(cut_marker) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+                        cut_marker = element;
+                    }
                 }
-            }
 
-            if (!firstEnd) return offers.length;
-            for (let i = 0; i < offers.length; i++) {
-                const pos = firstEnd.compareDocumentPosition(offers[i]);
-                if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return i;
+                if (!cut_marker) return offers.length;
+                for (let i = 0; i < offers.length; i++) {
+                    const pos = cut_marker.compareDocumentPosition(offers[i]);
+                    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return i;
+                }
+                return offers.length;
             }
-            return offers.length;
-        }''')
+        ''', OFFERS_CARD, STOP_TEXTS)
         all_offers = all_offers[:cutoff]
 
     results = []
@@ -61,7 +51,7 @@ async def extract_data(page, keyword_slug="dds"):
             text = await element.inner_text(timeout=2000)
             return text.strip()
 
-        except:
+        except Exception:
             return default
 
     async def get_safe_link(locator, selector, default="-"):
@@ -76,40 +66,39 @@ async def extract_data(page, keyword_slug="dds"):
             if not link:
                 return default
 
-            return "https://co.computrabajo.com" + link
+            return BASE_URL + link
 
-        except:
+        except Exception:
             return default
 
-    for i, offer in enumerate(all_offers):
+    for offer in all_offers:
         try:
             try:
                 await offer.click()
                 await page.wait_for_selector(
-                    ".description_offer .fs16.t_word_wrap",
+                    DESCRIPTION,
                     timeout=3000
                 )
-            except:
+            except Exception:
                 pass
 
             data = {
                 "id_oferta": await offer.get_attribute("data-id"),
-                "titulo": await get_safe_text(offer, "a.js-o-link"),
-                "enlace": await get_safe_link(offer, "a.js-o-link"),
-                "empresa": await get_safe_text(offer, "p.dFlex a"),
-                "valoracion": await get_safe_text(offer, "span.fwB"),
-                "ubicacion": await get_safe_text(offer, "p.fs16.fc_base.mt5:not(.dFlex) span.mr10"),
-                "salario": await get_safe_text(offer, "span:has-text('$')"),
-                "modalidad": await get_safe_text(offer, ".i_home_office + span"),
-                "tiempo": await get_safe_text(offer, "p.fs13.fc_aux.mt15"),
-                "descripcion": await get_safe_text(page, ".description_offer .fs16.t_word_wrap")
+                "titulo": await get_safe_text(offer, TITLE_LINK),
+                "enlace": await get_safe_link(offer, TITLE_LINK),
+                "empresa": await get_safe_text(offer, COMPANY_LINK),
+                "valoracion": await get_safe_text(offer, RATING),
+                "ubicacion": await get_safe_text(offer, LOCATION),
+                "modalidad": await get_safe_text(offer, MODALITY),
+                "tiempo": await get_safe_text(offer, PUBLISHED_TIME),
+                "descripcion": await get_safe_text(page, DESCRIPTION)
             }
 
             results.append(data)
 
             await asyncio.sleep(random.uniform(0.1, 0.4))
 
-        except:
+        except Exception:
             continue
 
     return results

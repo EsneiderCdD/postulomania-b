@@ -1,4 +1,4 @@
-from .selectors import OFFERS_CARD, STOP_TEXTS, NO_RESULTS_CONTAINER
+from .selectors import OFFERS_CARD, STOP_TEXTS, NO_RESULTS_CONTAINER, BASE_URL
 from .popups import handle_popups
 
 def _slugify(text):
@@ -10,7 +10,7 @@ async def execute_search(page, search_term, location, apply_filter=True, days=1)
 
     term_slug = _slugify(search_term)
     loc_slug = _slugify(location)
-    target_url = f"https://co.computrabajo.com/trabajo-de-{term_slug}-en-{loc_slug}"
+    target_url = f"{BASE_URL}/trabajo-de-{term_slug}-en-{loc_slug}"
 
     if apply_filter:
         target_url += f"?pubdate={days}"
