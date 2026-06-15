@@ -24,10 +24,10 @@ async def run_dds():
     try:
         raw_data = await run_computrabajo(
             search_term="Desarrollador de Software",
-            keyword_slug="dds",
+            location="Antioquia",
             apply_filter=True
         )
-        df_cleaned = run_pipeline(raw_data, keyword_slug="dds")
+        df_cleaned = run_pipeline(raw_data)
         if df_cleaned is not None:
             sync_to_master(df_cleaned, slug="dds", keyword="Desarrollador de Software")
         return {"status": "ok"}
@@ -39,10 +39,10 @@ async def run_dds_full():
     try:
         raw_data = await run_computrabajo(
             search_term="Desarrollador de Software",
-            keyword_slug="dds_full",
+            location="Antioquia",
             apply_filter=False
         )
-        df_cleaned = run_pipeline(raw_data, keyword_slug="dds_full")
+        df_cleaned = run_pipeline(raw_data)
         if df_cleaned is not None:
             sync_to_master(df_cleaned, slug="dds_full", keyword="Desarrollador de Software")
         return {"status": "ok"}
@@ -54,10 +54,10 @@ async def run_fullstack():
     try:
         raw_data = await run_computrabajo(
             search_term="desarrollador full stack",
-            keyword_slug="fullstack",
+            location="Antioquia",
             apply_filter=False
         )
-        df_cleaned = run_pipeline(raw_data, keyword_slug="fullstack")
+        df_cleaned = run_pipeline(raw_data)
         if df_cleaned is not None:
             sync_to_master(df_cleaned, slug="fullstack", keyword="desarrollador full stack")
         return {"status": "ok"}

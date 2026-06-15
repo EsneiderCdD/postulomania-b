@@ -11,12 +11,11 @@ async def main():
     try:
         raw_data = await run_computrabajo(
             search_term=SEARCH_TERM,
-            keyword_slug=SLUG,
             apply_filter=APPLY_FILTER,
             location=LOCATION,
         )
 
-        df_cleaned = run_pipeline(raw_data, keyword_slug=SLUG)
+        df_cleaned = run_pipeline(raw_data)
 
         if df_cleaned is not None:
             sync_to_master(df_cleaned, slug=SLUG, keyword=SEARCH_TERM)

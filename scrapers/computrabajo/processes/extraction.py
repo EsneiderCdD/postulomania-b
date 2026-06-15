@@ -13,11 +13,11 @@ async def extract_data(page):
 
     if end_exists and all_offers:
         cutoff = await page.evaluate('''
-            (offers_selector, marker_texts) => {
-                const offers = [...document.querySelectorAll(offers_selector)];
+            (args) => {
+                const offers = [...document.querySelectorAll(args.offers_selector)];
 
                 let cut_marker = null;
-                for (const text of marker_texts) {
+                for (const text of args.marker_texts) {
                     const xpath_query = "//*[contains(text(), '" + text + "')]";
                     const element = document.evaluate(
                         xpath_query, document, null,
@@ -36,7 +36,7 @@ async def extract_data(page):
                 }
                 return offers.length;
             }
-        ''', OFFERS_CARD, STOP_TEXTS)
+        ''', {"offers_selector": OFFERS_CARD, "marker_texts": STOP_TEXTS})
         all_offers = all_offers[:cutoff]
 
     results = []

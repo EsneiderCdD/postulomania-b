@@ -1,7 +1,7 @@
 import pandas as pd
 from analytics.processes import cleaning, normalization, mining
 
-def run_pipeline(data: list, keyword_slug: str = "dds"):
+def run_pipeline(data: list):
     """Procesa y enriquece los datos de ofertas en memoria."""
     if not data:
         return None
