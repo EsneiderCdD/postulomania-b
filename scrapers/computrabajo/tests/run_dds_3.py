@@ -1,4 +1,8 @@
 import asyncio
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
 from scrapers.computrabajo.main import run_computrabajo
 from scrapers.computrabajo.searches import DDS_3 as _SRC
 from analytics.pipeline import run_pipeline
