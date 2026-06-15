@@ -95,6 +95,7 @@ async def extract_data(page):
             }
 
             results.append(data)
+            print(f"[EXTRACT] id={data.get('id_oferta')} | titulo={data.get('titulo')}")
 
             await asyncio.sleep(random.uniform(0.1, 0.4))
 
