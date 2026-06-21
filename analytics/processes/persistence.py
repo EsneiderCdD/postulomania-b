@@ -14,19 +14,22 @@ def reset_db():
     Base.metadata.create_all(bind=engine)
 
 def seed_tech_registry(session):
-    """Sincroniza categorías y tecnologías desde el registro oficial."""
+    """Sincroniza categorías y tecnologías desde el registro oficial.
+    Inserta nuevas y actualiza categoria_id de existentes si difiere."""
     for cat_name, techs in TECH_CATEGORIES.items():
         cat_record = session.query(CategoriaTech).filter_by(nombre=cat_name).first()
         if not cat_record:
             cat_record = CategoriaTech(nombre=cat_name)
             session.add(cat_record)
             session.commit()
-        
+
         for t_name in techs:
             tech_record = session.query(Tecnologia).filter_by(nombre=t_name).first()
             if not tech_record:
                 tech_record = Tecnologia(nombre=t_name, categoria_id=cat_record.id)
                 session.add(tech_record)
+            elif tech_record.categoria_id != cat_record.id:
+                tech_record.categoria_id = cat_record.id
         session.commit()
 
 def save_to_db(df):
