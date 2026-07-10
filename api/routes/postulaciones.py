@@ -204,6 +204,19 @@ def update_postulacion(id: int, payload: dict):
         return {"error": str(e)}
 
 
+@router.delete("/limpiar")
+def limpiar_postulaciones():
+    try:
+        session = get_session()
+        count = session.query(Postulacion).count()
+        session.query(Postulacion).delete()
+        session.commit()
+        session.close()
+        return {"deleted": True, "total_eliminadas": count}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @router.delete("/{id}")
 def delete_postulacion(id: int):
     try:
